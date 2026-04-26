@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Root Variables */
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cancel-btn {
+            background: #f1f1f1;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .save-changes-btn {
+            background: var(--main-color);
+            border: none;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #e1e1e1;
+        }
+
+        .save-changes-btn:hover {
+            background: #2c5457;
+        }
+
+        #about-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            font-size: 1.4rem;
+            border: 1px solid rgba(63, 109, 113, 0.2);
+            border-radius: 0.5rem;
+            resize: vertical;
+        }
+        :root {
+            --main-color: #3f6d71;
+            --secondary-color: #2c3e50;
+            --background-color: #afd3e0;
+            --text-color: #333;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--main-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 5%;
+            border-bottom: 0.1rem solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 8rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--white);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--white);
+            text-transform: none;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo img {
+            height: clamp(6rem, 7vw, 8rem);
+        }
+
+        /* Navbar alignment and spacing */
+        .navbar {
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            margin-right: auto;
+            margin-left: 2rem;
+        }
+
+        .nav-link {
+            color: var(--white) !important;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 2rem !important;
+            font-weight: 600;
+            text-transform: none;
+            display: inline-block;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            transform: scale(1.05);
+        }
+
+        .logout-btn {
+            color: var(--white);
+            background: none;
+            border: 2px solid var(--white);
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+            margin-left: auto; /* Push logout button to the right */
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icons div {
+            color: var(--white);
+            cursor: pointer;
+            font-size: 2.5rem;
+            margin-left: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .icons div:hover {
+            color: var(--white);
+            transform: scale(1.1);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Profile Section */
+        .profile-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .profile-pic-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(63, 109, 113, 0.1);
+        }
+
+        .profile-pic-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(63, 109, 113, 0.2);
+            background: rgba(63, 109, 113, 0.15);
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .profile-pic-container:hover .profile-pic-overlay {
+            opacity: 1;
+        }
+
+        .profile-pic-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .camera-icon {
+            font-size: 3rem;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            color: var(--white);
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .profile-info h1 {
+            color: var(--main-color);
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .profile-info p {
+            color: var(--main-color);
+            font-size: 1.6rem;
+        }
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-item h3 {
+            font-size: 2rem;
+            color: var(--black);
+        }
+        .stat-item p {
+            font-size: 1.4rem;
+            color: var(--light-color);
+        }
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        .about-section, .works-section, .collaborations-section {
+            background: rgba(63, 109, 113, 0.1);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .about-section:hover, .works-section:hover, .collaborations-section:hover {
+            background: rgba(63, 109, 113, 0.15);
+        }
+        .about-header {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .about-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .completion-status {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            color: var(--main-color);
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 0.8rem;
+            background: rgba(63, 109, 113, 0.1);
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            max-width: 200px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--main-color);
+            border-radius: 1rem;
+            transition: width 0.5s ease;
+        }
+
+        .bio-box {
+            background: rgba(63, 109, 113, 0.1);
+            color: var(--main-color);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            font-style: italic;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 1.6rem;
+        }
+
+        .bio-box:hover {
+            background: rgba(63, 109, 113, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .section-item {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 2rem;
+            color: var(--main-color);
+        }
+
+        .editable-content, .role-display {
+            font-size: 1.8rem;
+            color: var(--text-color);
+        }
+
+        .interest-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            margin-top: 0.4rem;
+        }
+
+        .interest-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            background: rgba(63, 109, 113, 0.12);
+            color: var(--main-color);
+            border: 1px solid rgba(63, 109, 113, 0.22);
+            font-size: 1.3rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .interest-chip-label {
+            opacity: 0.85;
+            margin-right: 0.35rem;
+            font-weight: 700;
+        }
+
+        .interest-empty {
+            font-size: 1.8rem;
+            color: var(--text-color);
+        }
+
+        .genre-select {
+            min-height: 18rem;
+            padding: 0.6rem;
+            border: 1px solid rgba(63, 109, 113, 0.35);
+            border-radius: 0.8rem;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f9fa 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .genre-select:focus {
+            border-color: var(--main-color);
+            box-shadow: 0 0 0 3px rgba(63, 109, 113, 0.18);
+            outline: none;
+        }
+
+        .genre-select option {
+            padding: 0.9rem 1rem;
+            margin: 0.2rem 0;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #26484b;
+            background: #f7fcfd;
+        }
+
+        .genre-select option:checked {
+            background: linear-gradient(180deg, #4f8b91 0%, #3f6d71 100%);
+            color: #fff;
+        }
+
+        .genre-select-hint {
+            display: block;
+            margin-top: 0.6rem;
+            font-size: 1.2rem;
+            color: #4f6f73;
+        }
+
+        .edit-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .edit-modal {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .role-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--main-color);
+            border-radius: 4px;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.4rem;
+        }
+
+        .role-option.active {
+            background: var(--main-color);
+            color: var(--white);
+        }
+
+        .role-option:hover {
+            background: var(--main-color);
+            color: var(--white);
+        }
+
+        .works-section {
+            background: rgba(63, 109, 113, 0.1);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .works-section:hover {
+            background: rgba(63, 109, 113, 0.15);
+        }
+
+        .works-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .upload-btn {
+            background: rgba(63, 109, 113, 0.1);
+            color: var(--main-color);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: rgba(63, 109, 113, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .work-item {
+            position: relative;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            aspect-ratio: 1;
+            box-shadow: var(--shadow);
+            background: var(--white);
+        }
+
+        .work-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .work-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: var(--white);
+        }
+
+        .work-item:hover .work-overlay {
+            opacity: 1;
+        }
+
+        /* Progress bar styles */
+        .completion-status {
+            margin-top: 1rem;
+        }
+
+        #progressText {
+            font-size: 1.4rem;
+            color: var(--main-color);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.8rem;
+            background: rgba(63, 109, 113, 0.2);
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--main-color);
+            border-radius: 1rem;
+            transition: width 0.5s ease;
+        }
+
+        .work-actions {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 5;
+        }
+
+        .work-action-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: var(--white);
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            opacity: 0;
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .work-item:hover .work-action-btn {
+            opacity: 1;
+        }
+
+        .work-action-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Work item overlay buttons */
+        .work-action-buttons {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .work-item:hover .work-action-buttons {
+            opacity: 1;
+        }
+
+        .feature-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #a06a00;
+        }
+
+        .feature-btn.active {
+            background: #ffe9aa;
+            color: #8d5200;
+        }
+
+        .feature-btn:hover {
+            transform: scale(1.1);
+            background: var(--main-color);
+            color: #fff;
+        }
+
+        .featured-work-note {
+            margin: 0.2rem 0 1rem;
+            font-size: 1.3rem;
+            color: var(--main-color);
+        }
+
+        .view-btn, .delete-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn:hover, .delete-btn:hover {
+            transform: scale(1.1);
+            background: var(--main-color);
+            color: white;
+        }
+
+        .view-btn i, .delete-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* File list styles */
+        .file-list {
+            margin-top: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: rgba(63, 109, 113, 0.1);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-item i {
+            color: var(--main-color);
+        }
+
+        /* Upload Modal Styles */
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            z-index: 1001;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .upload-modal h3 {
+            font-size: 2.2rem;
+            color: var(--main-color);
+            margin-bottom: 2rem;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 1.6rem;
+            color: var(--main-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group select,
+        .form-group textarea {
+            padding: 1rem;
+            border: 1px solid rgba(63, 109, 113, 0.2);
+            border-radius: 0.5rem;
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+            background: #fff;
+            color: var(--text-color);
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--main-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(63, 109, 113, 0.1);
+        }
+
+        .file-upload-area {
+            border: 2px dashed rgba(63, 109, 113, 0.2);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--main-color);
+            background: rgba(63, 109, 113, 0.05);
+        }
+
+        .file-upload-area i {
+            font-size: 3rem;
+            color: var(--main-color);
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-text {
+            font-size: 1.4rem;
+            color: var(--text-color);
+        }
+
+        .upload-modal-btn {
+            background: var(--main-color);
+            color: var(--white);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .upload-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(63, 109, 113, 0.3);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            color: var(--main-color);
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn:hover {
+            background: rgba(63, 109, 113, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .edit-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .edit-btn:hover i {
+            transform: rotate(15deg);
+        }
+
+        /* Collaborations Section Styles */
+        .collaborations-section {
+            background: rgba(63, 109, 113, 0.1);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .collaborations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .collab-item {
+            background: var(--white);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .collab-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .collab-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+        }
+
+        .collab-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .collab-item:hover .collab-image img {
+            transform: scale(1.05);
+        }
+
+        .collab-info {
+            padding: 1.5rem;
+            background: var(--white);
+        }
+
+        .collab-info h3 {
+            font-size: 1.8rem;
+            color: var(--main-color);
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .collab-info p {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+        }
+
+        .collab-item:hover .collab-info h3 {
+            color: var(--secondary-color);
+        }
+
+        /* View Work Modal */
+        .view-work-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .view-work-modal .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .view-work-modal .work-preview {
+            max-width: 100%;
+            max-height: calc(90vh - 40px);
+            object-fit: contain;
+        }
+
+        .view-work-modal .close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--main-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        .view-work-modal .close-btn:hover {
+            background: var(--hover-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <a href="home.html" class="logo">
+            <img src="images/logo.png" alt="pixel script logo">
+            <span class="logo-text">PixelScript</span>
+        </a>
+
+        <nav class="navbar">
+            <a href="home.html" class="nav-link">Home</a>
+            <a href="creator-dashboard.html" class="nav-link">Collaborate</a>
+            <a href="matching.html" class="nav-link">Smart Matching</a>
+        </nav>
+
+        <button class="logout-btn" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </header>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <!-- Add Progress Bar -->
+            
+            <div class="profile-pic-container" onclick="document.getElementById('profilePicInput').click()">
+                <img src="images/default-profile.jpg" alt="profile picture" class="profile-pic" id="profilePic">
+                <div class="profile-pic-overlay">
+                    <i class="fas fa-camera camera-icon"></i>
+                    <span class="upload-text">Change Photo</span>
+                </div>
+                <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="handleProfilePicChange(event)">
+            </div>
+            <div class="profile-info">
+                <h1 id="userName">Loading...</h1>
+                <p id="userEmail">Loading...</p>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="stat-item">
+                <h3 id="worksCount">0</h3>
+                <p>Works</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="collabsCount">0</h3>
+                <p>Collaborations</p>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <div class="about-section">
+    <div class="section-header">
+        <h3>About</h3>
+        <button class="edit-btn" id="edit-about-btn">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+    
+    <div class="bio-box">
+        <div class="section-item">
+            <div class="section-header">
+                <h3>About Me</h3>
+            </div>
+            <div class="editable-content" id="about-content">Tell people about yourself</div>
+        </div>
+        
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Bio</h3>
+            </div>
+            <div class="editable-content" id="bio-content">Add your bio here</div>
+        </div>
+        
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Interests</h3>
+            </div>
+            <div class="editable-content" id="interest-content">Add your interests here</div>
+        </div>
+
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Country</h3>
+            </div>
+            <div class="editable-content" id="country-content">Not set</div>
+        </div>
+
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Age Group</h3>
+            </div>
+            <div class="editable-content" id="age-group-content">Not set</div>
+        </div>
+
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Experience</h3>
+            </div>
+            <div class="editable-content" id="experience-content">Not set</div>
+        </div>
+        
+        <div class="section-item">
+            <div class="section-header">
+                <h3>Role</h3>
+            </div>
+            <div class="role-display" id="role-content">
+                <span class="role-icon"><i class="fas fa-user"></i></span>
+                <span class="role-text">Writer</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="completion-status">
+        <span id="progressText">Profile Completion: <span id="progressPercent">0%</span></span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+    </div>
+    
+    <div class="edit-overlay" id="about-edit-overlay">
+        <div class="edit-modal">
+            <h3>Edit Profile Information</h3>
+            
+            <div class="form-group">
+                <label for="edit-about">About Me:</label>
+                <textarea id="edit-about" class="form-control"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-bio">Bio:</label>
+                <textarea id="edit-bio" class="form-control"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-interest">Genres:</label>
+                <select id="edit-interest" class="form-control genre-select" multiple size="9">
+                    <option value="fantasy">Fantasy</option>
+                    <option value="scifi">Sci-Fi</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="romance">Romance</option>
+                    <option value="horror">Horror</option>
+                    <option value="thriller">Thriller</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="drama">Drama</option>
+                    <option value="historical">Historical</option>
+                    <option value="action">Action</option>
+                    <option value="comedy">Comedy</option>
+                    <option value="crime">Crime</option>
+                    <option value="dystopian">Dystopian</option>
+                    <option value="fairy-tale">Fairy Tale</option>
+                    <option value="fiction">Fiction</option>
+                    <option value="graphic-novel">Graphic Novel</option>
+                    <option value="magic-realism">Magic Realism</option>
+                    <option value="mythology">Mythology</option>
+                    <option value="post-apocalyptic">Post-Apocalyptic</option>
+                    <option value="psychological">Psychological</option>
+                    <option value="satire">Satire</option>
+                    <option value="slice-of-life">Slice of Life</option>
+                    <option value="supernatural">Supernatural</option>
+                    <option value="suspense">Suspense</option>
+                    <option value="urban-fantasy">Urban Fantasy</option>
+                    <option value="young-adult">Young Adult</option>
+                    <option value="other">Other</option>
+                </select>
+                <small class="genre-select-hint">Hold Ctrl (Windows) to select multiple genres.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-country">Country:</label>
+                <select id="edit-country" class="form-control">
+                    <option value="">Select country</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Bangladesh">Bangladesh</option>
+                    <option value="Brazil">Brazil</option>
+                    <option value="USA">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="China">China</option>
+                    <option value="France">France</option>
+                    <option value="Germany">Germany</option>
+                    <option value="Indonesia">Indonesia</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="Italy">Italy</option>
+                    <option value="Japan">Japan</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Mexico">Mexico</option>
+                    <option value="Nepal">Nepal</option>
+                    <option value="Netherlands">Netherlands</option>
+                    <option value="New Zealand">New Zealand</option>
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Pakistan">Pakistan</option>
+                    <option value="Philippines">Philippines</option>
+                    <option value="Russia">Russia</option>
+                    <option value="Saudi Arabia">Saudi Arabia</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="South Korea">South Korea</option>
+                    <option value="Spain">Spain</option>
+                    <option value="Sri Lanka">Sri Lanka</option>
+                    <option value="Sweden">Sweden</option>
+                    <option value="Thailand">Thailand</option>
+                    <option value="Turkey">Turkey</option>
+                    <option value="UAE">United Arab Emirates</option>
+                    <option value="Vietnam">Vietnam</option>
+                    <option value="India">India</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-age-group">Age Group:</label>
+                <select id="edit-age-group" class="form-control">
+                    <option value="">Select age group</option>
+                    <option value="18-24">18-24</option>
+                    <option value="25-34">25-34</option>
+                    <option value="35-44">35-44</option>
+                    <option value="45+">45+</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-experience">Experience (years):</label>
+                <select id="edit-experience" class="form-control">
+                    <option value="">Select experience</option>
+                    <option value="0-1">0-1</option>
+                    <option value="1-5">1-5</option>
+                    <option value="5-10">5-10</option>
+                    <option value="10+">10+</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Role:</label>
+                <div id="role-options" style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                    <div class="role-option" data-role="Artist" data-icon="fa-paint-brush"><i class="fas fa-paint-brush"></i> Artist</div>
+                    <div class="role-option" data-role="Writer" data-icon="fa-pen-nib"><i class="fas fa-pen-nib"></i> Writer</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn cancel-btn" id="cancel-about-btn">Cancel</button>
+                <button class="btn save-changes-btn" id="save-about-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <section class="works-section">
+                <div class="works-header">
+                    <h2>My Work</h2>
+                    <button class="upload-btn" onclick="openUploadModal()">
+                        <i class="fas fa-upload"></i>
+                        Upload New Work
+                    </button>
+                </div>
+                <p class="featured-work-note" id="featuredWorkSummary">Select up to 6 featured works for your public profile.</p>
+                <div class="works-grid" id="worksGrid">
+                    <!-- Works will be dynamically added here -->
+                </div>
+            </section>
+
+            <section class="collaborations-section">
+                <div class="section-header">
+                    <h2>Active Collaborations</h2>
+                </div>
+                <div class="collaborations-grid" id="activeCollaborationsGrid">
+                    <p>Loading active collaborations...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="profile-nav">
+        <a href="home.html">Home</a>
+        <a href="creator-dashboard.html">Collaborate</a>
+        <a href="#settings">Settings</a>
+        <a href="#" onclick="handleLogout()">Logout</a>
+    </nav>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="uploadOverlay"></div>
+    <div class="upload-modal" id="uploadModal">
+        <h3>Upload New Work</h3>
+        <form class="upload-form" id="uploadForm">
+            <div class="form-group">
+                <label for="projectTitle">Project Title</label>
+                <input type="text" id="projectTitle" required>
+            </div>
+            <div class="form-group">
+                <label for="projectDescription">Description</label>
+                <textarea id="projectDescription" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p class="file-upload-text">Click to upload files or drag and drop</p>
+                    <p class="file-upload-text">Allowed formats: JPG, PNG, GIF, PDF, DOC, DOCX</p>
+                    <p class="file-upload-text">Maximum file size: 10 MB per file</p>
+                    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx" style="display: none">
+                </div>
+                <div id="fileList"></div>
+            </div>
+            <button type="submit" class="upload-modal-btn">Upload Work</button>
+        </form>
+    </div>
+
+    <script src="js/search.js"></script>
+    <script src="js/profile-app.js"></script>
+</body>
+</html>

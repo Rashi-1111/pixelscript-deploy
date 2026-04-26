@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outside the Cage - Live Collaboration | PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Collab CSS -->
+    <link rel="stylesheet" href="../css/collab.css">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="../css/responsive.css">
+    <!-- Collaboration JS -->
+    <script src="../js/collaboration.js"></script>
+    <style>
+        :root {
+            --main-color: #3f6d71;
+            --secondary-color: #2c3e50;
+            --background-color: #afd3e0;
+            --text-color: #333;
+            --white: #ffffff;
+        }
+
+        .collab-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--white);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .collab-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid rgba(63, 109, 113, 0.1);
+        }
+
+        .collab-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 1rem;
+            object-fit: cover;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .collab-info {
+            flex: 1;
+        }
+
+        .collab-info h1 {
+            font-size: 2.5rem;
+            color: var(--main-color);
+            margin-bottom: 1rem;
+        }
+
+        .collab-info p {
+            font-size: 1.6rem;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .collaborator {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .collaborator-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .collaborator-info h3 {
+            font-size: 1.8rem;
+            color: var(--main-color);
+        }
+
+        .collaborator-info p {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+        }
+
+        .story-content {
+            margin-top: 3rem;
+        }
+
+        .story-content h2 {
+            font-size: 2.2rem;
+            color: var(--main-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .chapter {
+            background: rgba(63, 109, 113, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .chapter h3 {
+            font-size: 1.8rem;
+            color: var(--main-color);
+            margin-bottom: 1rem;
+        }
+
+        .chapter p {
+            font-size: 1.6rem;
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+
+        .artwork-section {
+            margin-top: 3rem;
+            position: relative;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        #collaborationCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .canvas-tools {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--white);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tool-btn {
+            width: 4rem;
+            height: 4rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--white);
+            color: var(--main-color);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-btn:hover, .tool-btn.active {
+            background: var(--main-color);
+            color: var(--white);
+        }
+
+        .color-picker {
+            width: 4rem;
+            height: 4rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0;
+        }
+
+        .size-slider {
+            width: 4rem;
+            writing-mode: bt-lr;
+            appearance: slider-vertical;
+            -webkit-appearance: slider-vertical;
+            -moz-appearance: slider-vertical;
+            padding: 0.5rem;
+        }
+
+        .canvas-actions {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--main-color);
+            color: var(--white);
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn i {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="collab-container">
+        <!-- Header -->
+        <header class="collab-header">
+            <div class="logo">
+                <a href="../home.html">
+                    <img src="../images/logo.png" alt="PixelScript Logo">
+                </a>
+            </div>
+            <div class="collab-info">
+                <h2>Outside the Cage</h2>
+                <div class="partner-info">
+                    <img src="../images/blue's ink.jpeg" alt="Partner" class="partner-avatar">
+                    <span class="partner-name">Working with: Blue Ink</span>
+                </div>
+            </div>
+            <div class="tools">
+                <button id="save-btn" class="tool-btn"><i class="fas fa-save"></i> Save</button>
+                <button id="export-btn" class="tool-btn"><i class="fas fa-download"></i> Export</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Drawing Tools -->
+            <div class="drawing-tools">
+                <div class="tool-group">
+                    <button class="tool-btn active" data-tool="brush" title="Brush">
+                        <i class="fas fa-paint-brush"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="eraser" title="Eraser">
+                        <i class="fas fa-eraser"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="line" title="Line">
+                        <i class="fas fa-slash"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="circle" title="Circle">
+                        <i class="far fa-circle"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="rectangle" title="Rectangle">
+                        <i class="far fa-square"></i>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <input type="color" id="color-picker" value="#3f6d71" title="Color">
+                    <input type="range" id="size-slider" min="1" max="50" value="5" title="Size">
+                </div>
+                <div class="tool-group">
+                    <button class="tool-btn" onclick="canvas.undoLastAction()" title="Undo">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="tool-btn" onclick="canvas.redoLastAction()" title="Redo">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="tool-btn" onclick="canvas.clearCanvas()" title="Clear">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h3>Chat</h3>
+                    <button class="minimize-btn"><i class="fas fa-minus"></i></button>
+                </div>
+                <div class="chat-messages">
+                    <!-- Messages will be added dynamically -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="Type your message...">
+                    <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize canvas
+        const canvas = new CollaborationCanvas('drawing-canvas');
+
+        // Tool selection
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.tool-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                canvas.setTool(btn.dataset.tool);
+            });
+        });
+
+        // Color picker
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            canvas.setColor(e.target.value);
+        });
+
+        // Size slider
+        document.getElementById('size-slider').addEventListener('input', (e) => {
+            canvas.setSize(e.target.value);
+        });
+
+        // Chat functionality
+        const chatInput = document.querySelector('.chat-input input');
+        const sendBtn = document.querySelector('.send-btn');
+        const chatMessages = document.querySelector('.chat-messages');
+        const minimizeBtn = document.querySelector('.minimize-btn');
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                const messageHtml = `
+                    <div class="message sent">
+                        <div class="message-content">
+                            <span class="message-sender">You</span>
+                            <p>${message}</p>
+                        </div>
+                        <img src="../images/user-2.png" alt="You" class="message-avatar">
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatInput.value = '';
+                // Emit message via socket
+                socket.emit('chatMessage', { room: 'blue-ink', message });
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        minimizeBtn.addEventListener('click', () => {
+            document.querySelector('.chat-section').classList.toggle('minimized');
+        });
+
+        // Join collaboration room
+        socket.emit('joinRoom', { room: 'blue-ink', userType: 'artist' });
+    </script>
+</body>
+</html>

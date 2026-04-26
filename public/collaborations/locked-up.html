@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locked Up - Live Collaboration | PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Collab CSS -->
+    <link rel="stylesheet" href="../css/collab.css">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="../css/responsive.css">
+    <!-- Theme CSS -->
+    <style>
+        :root {
+            --theme-color: #663399;
+            --theme-light: #8652c9;
+            --theme-dark: #4b2570;
+            --chat-bg: rgba(102, 51, 153, 0.1);
+        }
+
+        .tool-btn {
+            color: var(--theme-color);
+            border: 1px solid var(--theme-color);
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tool-btn:hover, .tool-btn.active {
+            background-color: var(--theme-color);
+            color: white;
+        }
+
+        .send-btn {
+            color: var(--theme-color);
+            transition: color 0.3s ease;
+        }
+
+        .send-btn:hover {
+            color: var(--theme-dark);
+        }
+
+        .chat-section {
+            background-color: var(--chat-bg);
+            border-left: 2px solid var(--theme-color);
+        }
+
+        .chat-header {
+            background-color: var(--theme-color);
+            color: white;
+        }
+
+        .message.sent .message-content {
+            background-color: var(--theme-color);
+            color: white;
+        }
+
+        .message.received .message-content {
+            background-color: var(--theme-light);
+            color: white;
+        }
+
+        #color-picker::-webkit-color-swatch {
+            border: 2px solid var(--theme-color);
+        }
+
+        #size-slider::-webkit-slider-thumb {
+            background: var(--theme-color);
+        }
+
+        #size-slider::-webkit-slider-runnable-track {
+            background: var(--chat-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="collab-container">
+        <!-- Header -->
+        <header class="collab-header">
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="../images/logo.png" alt="PixelScript Logo">
+                </a>
+            </div>
+            <div class="collab-info">
+                <h2>Locked Up</h2>
+                <div class="partner-info">
+                    <img src="../images/hamzy.jpeg" alt="Partner" class="partner-avatar">
+                    <span class="partner-name">Working with: Locked Up</span>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="save-btn" class="tool-btn"><i class="fas fa-save"></i> Save</button>
+                <button id="export-btn" class="tool-btn"><i class="fas fa-download"></i> Export</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Tools -->
+            <div class="tools-container">
+                <div class="tool-group">
+                    <button class="tool-btn active" data-tool="brush" title="Brush">
+                        <i class="fas fa-paint-brush"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="eraser" title="Eraser">
+                        <i class="fas fa-eraser"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="line" title="Line">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="circle" title="Circle">
+                        <i class="far fa-circle"></i>
+                    </button>
+                    <button class="tool-btn" data-tool="rectangle" title="Rectangle">
+                        <i class="far fa-square"></i>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <input type="color" id="color-picker" value="#663399" title="Color">
+                    <input type="range" id="size-slider" min="1" max="50" value="5" title="Size">
+                </div>
+                <div class="tool-group">
+                    <button class="tool-btn" onclick="canvas.undoLastAction()" title="Undo">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="tool-btn" onclick="canvas.redoLastAction()" title="Redo">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="tool-btn" onclick="canvas.clearCanvas()" title="Clear">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <div class="canvas-container">
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+
+            <!-- Chat -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h3>Chat</h3>
+                    <button class="minimize-btn"><i class="fas fa-minus"></i></button>
+                </div>
+                <div class="chat-messages">
+                    <!-- Messages will be added dynamically -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="Type your message...">
+                    <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collaboration JS -->
+    <script src="../js/collaboration.js"></script>
+    <script>
+        // Initialize canvas
+        const canvas = new CollaborationCanvas('drawing-canvas');
+
+        // Tool selection
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.tool-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                canvas.setTool(btn.dataset.tool);
+            });
+        });
+
+        // Color picker
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            canvas.setColor(e.target.value);
+        });
+
+        // Size slider
+        document.getElementById('size-slider').addEventListener('input', (e) => {
+            canvas.setSize(e.target.value);
+        });
+
+        // Chat functionality
+        const chatInput = document.querySelector('.chat-input input');
+        const sendBtn = document.querySelector('.send-btn');
+        const chatMessages = document.querySelector('.chat-messages');
+        const minimizeBtn = document.querySelector('.minimize-btn');
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                const messageHtml = `
+                    <div class="message sent">
+                        <div class="message-content">
+                            <span class="message-sender">You</span>
+                            <p>${message}</p>
+                        </div>
+                        <img src="../images/user-2.png" alt="You" class="message-avatar">
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatInput.value = '';
+                canvas.socket.emit('chatMessage', { room: 'locked-up', message });
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        minimizeBtn.addEventListener('click', () => {
+            document.querySelector('.chat-section').classList.toggle('minimized');
+        });
+    </script>
+</body>
+</html>

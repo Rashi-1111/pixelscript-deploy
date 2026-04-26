@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <title>PixelScript — One artist to another!</title>
+    <meta name="description" content="PixelScript is the creative collaboration platform connecting writers and artists to build amazing visual stories together.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/home.css">
+    <script src="js/auth.js"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+
+        /* ── SEARCH FORM ── */
+        .search-form {
+            position: absolute;
+            top: 110%; right: 7%;
+            width: 46rem; height: 5rem;
+            display: none; align-items: center;
+            background: var(--white);
+            border-radius: 0.5rem;
+            box-shadow: var(--box-shadow);
+            padding: 1rem;
+            z-index: 200;
+        }
+        .search-form.active { display: flex; }
+        .search-form input {
+            width: 100%; height: 100%;
+            padding: 1rem; font-size: 1.6rem;
+            color: var(--black); border: none;
+        }
+        .search-form input:focus { outline: none; }
+        .search-form label {
+            font-size: 2rem; color: var(--black);
+            cursor: pointer; margin-right: 1rem;
+        }
+        .text-highlight { background: #fff3cd; }
+        .text-highlight-active { background: #ffc107; }
+
+        /* ── ICONS ── */
+        .icons { display: flex; align-items: center; gap: 1.5rem; }
+        .icons #search-btn { margin-right: 1.5rem; color: #fff !important; }
+        .icons a, .icons div {
+            font-size: 2rem; color: #fff !important;
+            cursor: pointer; transition: color 0.3s;
+        }
+        .icons a:hover, .icons div:hover { color: var(--main-color) !important; }
+        .icons .logout { color: #fff !important; }
+        .icons .logout:hover { color: var(--main-color) !important; }
+
+        .profile-icon { margin-right: 1rem; }
+        .profile-icon img {
+            width: 40px; height: 40px;
+            border-radius: 50%; object-fit: cover;
+        }
+
+        /* ── REVIEWS ── */
+        .review-submit-area {
+            max-width: 680px;
+            margin: 2rem auto 3rem;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        .review-submit-area h3 {
+            font-size: 1.6rem;
+            color: var(--black);
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+        .star-picker {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+            font-size: 2.8rem;
+        }
+        .star-picker i {
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s, transform 0.15s;
+        }
+        .star-picker i.selected, .star-picker i.hover { color: #f5a623; transform: scale(1.15); }
+        .review-text-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.4rem;
+            font-family: inherit;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 1rem;
+        }
+        .review-text-input:focus { outline: none; border-color: var(--main-color); }
+        .btn-submit-review {
+            width: 100%;
+            padding: 1rem;
+            background: var(--main-color);
+            color: #fff;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit-review:hover:not(:disabled) { background: #2c5457; }
+        .btn-submit-review:disabled { opacity: 0.6; cursor: not-allowed; }
+        .review-success {
+            text-align: center;
+            color: #16a34a;
+            font-size: 1.4rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* ── CONTACT SECTION ── */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; } }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            color: var(--black);
+            margin-bottom: 1.5rem;
+        }
+        .contact-info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            font-size: 1.5rem;
+        }
+        .contact-info-item i {
+            color: var(--main-color);
+            font-size: 2rem;
+            width: 2.5rem;
+            text-align: center;
+        }
+        .contact-info-item a {
+            color: var(--black);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .contact-info-item a:hover { color: var(--main-color); }
+
+        .contact-form-wrapper h3 {
+            font-size: 2rem;
+            color: var(--black);
+            margin-bottom: 1.5rem;
+        }
+        .contact-form-wrapper form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row .inputBox { flex: 1; }
+        .inputBox {
+            display: flex;
+            align-items: center;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 0.5rem;
+            padding: 0.8rem 1rem;
+            gap: 0.8rem;
+        }
+        .inputBox i { color: var(--main-color); font-size: 1.6rem; }
+        .inputBox input, .inputBox textarea {
+            width: 100%;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            font-family: inherit;
+            color: var(--black);
+        }
+        .inputBox textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .inputBox input:focus, .inputBox textarea:focus { outline: none; }
+        .contact-submit-msg {
+            font-size: 1.3rem;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 0.3rem;
+            display: none;
+        }
+        .contact-submit-msg.success { color: #16a34a; background: #dcfce7; display: block; }
+        .contact-submit-msg.error   { color: #dc2626; background: #fee2e2; display: block; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="home.html" class="logo">
+            <img src="images/logo.png" alt="PixelScript logo">
+            <span class="logo-text">PixelScript</span>
+        </a>
+
+        <nav class="navbar">
+            <a href="#home">Home</a>
+            <a href="#workspace">Workspace</a>
+            <a href="#stories">Stories</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <!-- Icons (search only, collab dropdown removed) -->
+        <div class="icons">
+            <div id="search-btn" class="fas fa-search" title="Search"></div>
+            <a href="profile.html" class="profile-icon">
+                <img src="images/default-profile.jpg" alt="Profile" id="headerProfilePic">
+            </a>
+            <div class="logout fas fa-sign-out-alt" onclick="handleLogout()" title="Logout"></div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form">
+            <input type="search" id="search-box" placeholder="Search on this page…" autocomplete="off">
+            <label for="search-box" class="fas fa-search"></label>
+        </div>
+    </header>
+
+    <!-- Home Section -->
+    <section class="home" id="home">
+        <h1 class="heading"><span>"Welcome to PixelScript!"</span></h1>
+        <div class="row">
+            <div class="image">
+                <img src="images/about.jpeg" alt="collaboration">
+            </div>
+            <div class="content">
+                <p class="hero-description">Turn your ideas into stories that people can see, feel, and follow. Create in real time, bring every scene to life, and share your work with an audience ready to experience and support it. What you imagine doesn't just stay an idea here — it becomes something real.</p>
+                <div class="features">
+                    <a href="collaborator-dashboard.html" class="feature-action">
+                        <i class="fas fa-paint-brush"></i>
+                        <span>Live Drawing Canvas</span>
+                    </a>
+                    <a href="collaborator-dashboard.html" class="feature-action">
+                        <i class="fas fa-pen-fancy"></i>
+                        <span>Real-time Writing</span>
+                    </a>
+                </div>
+                <a href="matching.html" class="btn">Smart Matching</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workspace Section -->
+    <section class="workspace" id="workspace">
+        <div class="content">
+            <h3>Ready to create your digital story?</h3>
+            <p>At PixelScript, collaborate with your favourite artist or writer and make your stories come true.</p>
+            <a href="collaborator-dashboard.html" class="btn">Collaborate Now</a>
+        </div>
+    </section>
+
+    <!-- Stories Section -->
+    <section class="stories" id="stories">
+        <h1 class="heading">Your <span>Stories</span></h1>
+        <div class="box-container" id="yourStoriesGrid">
+            <p class="stories-loading">Loading your stories...</p>
+        </div>
+    </section>
+
+    <!-- Review Section -->
+    <section class="review" id="reviews">
+        <h1 class="heading">User's <span>Reviews</span></h1>
+
+        <!-- Review Submission Form (shown only to logged-in users) -->
+        <div class="review-submit-area" id="reviewSubmitArea" style="display:none;">
+            <h3><i class="fas fa-star" style="color:#f5a623;"></i> Share Your Experience</h3>
+            <div class="star-picker" id="starPicker">
+                <i class="fas fa-star" data-val="1"></i>
+                <i class="fas fa-star" data-val="2"></i>
+                <i class="fas fa-star" data-val="3"></i>
+                <i class="fas fa-star" data-val="4"></i>
+                <i class="fas fa-star" data-val="5"></i>
+            </div>
+            <textarea class="review-text-input" id="reviewText" placeholder="Tell us about your PixelScript experience…" maxlength="800" rows="4"></textarea>
+            <button class="btn-submit-review" id="btnSubmitReview" onclick="submitReview()">Post Review</button>
+            <div class="review-success" id="reviewSuccess"><i class="fas fa-check-circle"></i> Thank you! Your review has been posted.</div>
+        </div>
+
+        <!-- Dynamic Reviews Grid (empty until reviews are submitted) -->
+        <div class="box-container" id="reviewsGrid">
+            <div class="reviews-empty" id="reviewsEmpty" style="text-align:center;padding:3rem;color:#888;font-size:1.4rem;width:100%;">
+                <i class="fas fa-star" style="font-size:3rem;color:#ddd;display:block;margin-bottom:1rem;"></i>
+                Be the first to review PixelScript!
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <h1 class="heading"><span>Contact</span> Us</h1>
+        <div class="row" style="display:block;max-width:1100px;margin:0 auto;padding:0 2rem;">
+            <div class="contact-grid">
+
+                <!-- Left: Creator info -->
+                <div class="contact-info">
+                    <h3>Get in Touch</h3>
+                    <p style="font-size:1.4rem;color:#555;margin-bottom:1.5rem;line-height:1.7;">
+                        Have a question, feedback, or just want to say hello? We'd love to hear from you. Reach out directly or fill in the form.
+                    </p>
+
+                    <div class="contact-info-item">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:pixelscript.info@gmail.com">pixelscript.info@gmail.com</a>
+                    </div>
+                    <div class="contact-info-item">
+                        <i class="fab fa-linkedin"></i>
+                        <a href="https://www.linkedin.com/in/rashi-kaur-1227502a4/" target="_blank" rel="noopener">linkedin.com/in/rashi-kaur-1227502a4</a>
+                    </div>
+                    <div class="contact-info-item">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Rashi Kaur — Creator, PixelScript</span>
+                    </div>
+                </div>
+
+                <!-- Right: Contact Form -->
+                <div class="contact-form-wrapper">
+                    <h3>Send a Message</h3>
+                    <form id="contactForm" onsubmit="submitContact(event)">
+                        <div class="form-row">
+                            <div class="inputBox">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="cName" placeholder="Your name" required maxlength="100">
+                            </div>
+                            <div class="inputBox">
+                                <i class="fas fa-at"></i>
+                                <input type="text" id="cUsername" placeholder="Username (optional)" maxlength="60">
+                            </div>
+                        </div>
+                        <div class="inputBox">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="cEmail" placeholder="Your email (optional)" maxlength="200">
+                        </div>
+                        <div class="inputBox">
+                            <i class="fas fa-tag"></i>
+                            <input type="text" id="cSubject" placeholder="Subject" maxlength="200">
+                        </div>
+                        <div class="inputBox">
+                            <i class="fas fa-comment-dots" style="align-self:flex-start;margin-top:0.3rem;"></i>
+                            <textarea id="cMessage" placeholder="Your query or comment…" required maxlength="1500" rows="5"></textarea>
+                        </div>
+                        <button type="submit" class="btn" id="btnContact">Send Message</button>
+                        <div class="contact-submit-msg" id="contactMsg"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="footer">
+        <div class="share">
+            <h3>Follow Us</h3>
+            <a href="https://www.facebook.com" target="_blank" class="fab fa-facebook"></a>
+            <a href="https://x.com" target="_blank" class="fab fa-twitter"></a>
+            <a href="https://www.instagram.com" target="_blank" class="fab fa-instagram"></a>
+            <a href="https://www.linkedin.com/in/rashi-kaur-1227502a4/" target="_blank" class="fab fa-linkedin"></a>
+            <a href="https://in.pinterest.com" target="_blank" class="fab fa-pinterest"></a>
+        </div>
+        <div class="contact">
+            <h3>Contact</h3>
+            <p>Email: <a href="mailto:pixelscript.info@gmail.com">pixelscript.info@gmail.com</a></p>
+            <p>Creator: <a href="https://www.linkedin.com/in/rashi-kaur-1227502a4/" target="_blank">Rashi Kaur</a></p>
+        </div>
+        <div class="links">
+            <h3>Quick Links</h3>
+            <a href="#home">Home</a>
+            <a href="#workspace">Workspace</a>
+            <a href="#stories">Stories</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <div class="credit">&copy; 2026 PixelScript. All rights reserved.</div>
+    </section>
+
+    <script>
+        // ── AUTH & INIT ──────────────────────────────────────────────────────
+        let currentUser = null;
+        let selectedRating = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/users/me', { credentials: 'include' });
+                if (!res.ok) { window.location.href = '/login.html'; return; }
+                currentUser = await res.json();
+
+                // Update profile pic
+                const pic = document.getElementById('headerProfilePic');
+                if (pic && currentUser.profilePicture) pic.src = currentUser.profilePicture;
+
+                // Show review form to logged-in users
+                document.getElementById('reviewSubmitArea').style.display = 'block';
+            } catch (e) {
+                window.location.href = '/login.html';
+            }
+
+            initSearch();
+            initStarPicker();
+            loadDynamicReviews();
+        });
+
+        function handleLogout() {
+            sessionStorage.removeItem('user');
+            document.cookie = 'ps_auth=; Max-Age=0; path=/';
+            window.location.href = 'login.html';
+        }
+
+        // ── SEARCH ───────────────────────────────────────────────────────────
+        function initSearch() {
+            const searchBtn  = document.getElementById('search-btn');
+            const searchForm = document.querySelector('.search-form');
+            const searchBox  = document.getElementById('search-box');
+
+            if (!searchBtn || !searchForm || !searchBox) return;
+
+            searchBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                searchForm.classList.toggle('active');
+                if (searchForm.classList.contains('active')) searchBox.focus();
+            });
+
+            let highlights = [], currentIdx = -1;
+            const HL = 'text-highlight', HL_A = 'text-highlight-active';
+
+            function clearHighlights() {
+                document.querySelectorAll('.' + HL).forEach(el => {
+                    el.replaceWith(document.createTextNode(el.textContent));
+                });
+                highlights = []; currentIdx = -1;
+            }
+
+            function highlightCurrent() {
+                if (highlights[currentIdx]) {
+                    highlights[currentIdx].classList.add(HL_A);
+                    highlights[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            searchBox.addEventListener('input', () => {
+                clearHighlights();
+                const term = searchBox.value.trim();
+                if (!term) return;
+                const regex = new RegExp(term, 'gi');
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                    acceptNode: n => n.parentElement.closest('.search-form') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+                });
+                let node;
+                while (node = walker.nextNode()) {
+                    if (!regex.test(node.textContent)) continue;
+                    regex.lastIndex = 0;
+                    const wrap = document.createElement('span');
+                    wrap.innerHTML = node.textContent.replace(regex, m => `<span class="${HL}">${m}</span>`);
+                    node.parentNode.replaceChild(wrap, node);
+                    wrap.querySelectorAll('.' + HL).forEach(el => highlights.push(el));
+                }
+                if (highlights.length) { currentIdx = 0; highlightCurrent(); }
+            });
+
+            searchBox.addEventListener('keydown', e => {
+                if (!highlights.length) return;
+                if (highlights[currentIdx]) highlights[currentIdx].classList.remove(HL_A);
+                if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); currentIdx = (currentIdx + 1) % highlights.length; }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); currentIdx = (currentIdx - 1 + highlights.length) % highlights.length; }
+                highlightCurrent();
+            });
+
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.search-form') && !e.target.closest('#search-btn')) {
+                    searchForm.classList.remove('active');
+                    clearHighlights();
+                }
+            });
+        }
+
+        // ── STAR PICKER ──────────────────────────────────────────────────────
+        function initStarPicker() {
+            const stars = document.querySelectorAll('#starPicker i');
+            stars.forEach(star => {
+                star.addEventListener('mouseenter', () => {
+                    const v = +star.dataset.val;
+                    stars.forEach(s => s.classList.toggle('hover', +s.dataset.val <= v));
+                });
+                star.addEventListener('mouseleave', () => {
+                    stars.forEach(s => s.classList.remove('hover'));
+                });
+                star.addEventListener('click', () => {
+                    selectedRating = +star.dataset.val;
+                    stars.forEach(s => s.classList.toggle('selected', +s.dataset.val <= selectedRating));
+                });
+            });
+        }
+
+        // ── DYNAMIC REVIEWS ──────────────────────────────────────────────────
+        async function loadDynamicReviews() {
+            try {
+                const res = await fetch('/api/contact/reviews');
+                if (!res.ok) return;
+                const reviews = await res.json();
+
+                const grid = document.getElementById('reviewsGrid');
+                const emptyEl = document.getElementById('reviewsEmpty');
+
+                if (!reviews.length) {
+                    if (emptyEl) emptyEl.style.display = 'block';
+                    return;
+                }
+
+                if (emptyEl) emptyEl.remove();
+                reviews.forEach(r => grid.insertAdjacentHTML('beforeend', buildReviewCard(r)));
+            } catch (e) { /* silent */ }
+        }
+
+        function buildReviewCard(r) {
+            const stars = Array.from({ length: 5 }, (_, i) =>
+                `<i class="${i < r.rating ? 'fas' : 'far'} fa-star"></i>`
+            ).join('');
+            const avatar = r.avatar || 'images/user-1.png';
+            const roleLabel = r.role ? capitalize(r.role) : '';
+            const roleBadge = roleLabel
+                ? `<span style="display:inline-block;background:#3f6d71;color:#fff;font-size:1.1rem;font-weight:600;
+                   padding:0.2rem 0.7rem;border-radius:999px;margin-bottom:0.6rem;">${roleLabel}</span>`
+                : '';
+            return `
+            <div class="box">
+                ${roleBadge}
+                <p>"${escHtml(r.message)}"</p>
+                <img src="${escHtml(avatar)}" alt="${escHtml(r.name)}" class="user" onerror="this.src='images/user-1.png'">
+                <h3>${escHtml(r.name)}</h3>
+                <div class="stars">${stars}</div>
+            </div>`;
+        }
+
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+        async function submitReview() {
+            const text = document.getElementById('reviewText').value.trim();
+            if (!selectedRating) { alert('Please select a star rating.'); return; }
+            if (!text) { alert('Please write a short review.'); return; }
+
+            const btn = document.getElementById('btnSubmitReview');
+            btn.disabled = true; btn.textContent = 'Posting…';
+
+            try {
+                const res = await fetch('/api/contact/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating: selectedRating, text })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.message || 'Failed to post review'); btn.disabled = false; btn.textContent = 'Post Review'; return; }
+
+                // Remove empty state if present
+                const emptyEl = document.getElementById('reviewsEmpty');
+                if (emptyEl) emptyEl.remove();
+
+                // Inject into grid
+                document.getElementById('reviewsGrid').insertAdjacentHTML('afterbegin', buildReviewCard(data));
+
+                document.getElementById('reviewSuccess').style.display = 'block';
+                document.getElementById('reviewText').value = '';
+                selectedRating = 0;
+                document.querySelectorAll('#starPicker i').forEach(s => s.classList.remove('selected'));
+            } catch (e) {
+                alert('Failed to post review. Please try again.');
+                btn.disabled = false; btn.textContent = 'Post Review';
+            }
+        }
+
+        // ── CONTACT FORM ─────────────────────────────────────────────────────
+        async function submitContact(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnContact');
+            const msgEl = document.getElementById('contactMsg');
+            msgEl.className = 'contact-submit-msg'; msgEl.style.display = 'none';
+
+            btn.disabled = true; btn.textContent = 'Sending…';
+
+            try {
+                const res = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name:     document.getElementById('cName').value.trim(),
+                        username: document.getElementById('cUsername').value.trim(),
+                        email:    document.getElementById('cEmail').value.trim(),
+                        subject:  document.getElementById('cSubject').value.trim(),
+                        message:  document.getElementById('cMessage').value.trim()
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msgEl.textContent = '✅ Message sent! We\'ll get back to you soon.';
+                    msgEl.className = 'contact-submit-msg success';
+                    document.getElementById('contactForm').reset();
+                } else {
+                    msgEl.textContent = data.message || 'Error sending message.';
+                    msgEl.className = 'contact-submit-msg error';
+                }
+                msgEl.style.display = 'block';
+            } catch (err) {
+                msgEl.textContent = 'Network error. Please try again.';
+                msgEl.className = 'contact-submit-msg error';
+                msgEl.style.display = 'block';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send Message';
+            }
+        }
+
+        function escHtml(s) {
+            return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+    </script>
+
+    <script src="js/home.js"></script>
+    <script src="js/home-stories.js"></script>
+</body>
+</html>

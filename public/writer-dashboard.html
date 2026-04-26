@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writer Dashboard - PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-color: #173235;
+            --text-secondary: #60797c;
+            --border-color: #d7e6e8;
+            --card-bg: #ffffff;
+            --bg-color: #eff7f8;
+            --main-color: #2f666b;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(180deg, #f7fbfb 0%, #eaf3f4 100%);
+            color: var(--text-color);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-hero {
+            background: linear-gradient(135deg, #234b50 0%, #3a7479 100%);
+            color: white;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 18px 36px rgba(35, 75, 80, 0.18);
+        }
+
+        .dashboard-hero p {
+            max-width: 720px;
+            margin: 0.75rem 0 0;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-header h1 {
+            color: var(--text-color);
+        }
+
+        .btn-create {
+            background: var(--main-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-create:hover {
+            background: #2c5457;
+        }
+
+        .stories-section {
+            margin-bottom: 3rem;
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .story-card {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .story-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .story-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .story-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .story-meta {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .story-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .btn-edit {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-publish {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .chapter-list {
+            margin-top: 2rem;
+        }
+
+        .chapter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-hero">
+            <h1>Writer Command Deck</h1>
+            <p>Create chapter-based stories, upload cover art, publish them to the reader library, and keep the first two chapters free automatically. This page is now the dedicated writer interface.</p>
+        </div>
+
+        <div class="dashboard-header">
+            <h1>Writer Dashboard</h1>
+            <button class="btn-create" onclick="showCreateStoryModal()">Create New Story</button>
+        </div>
+
+        <div class="stories-section">
+            <h2>Your Stories</h2>
+            <div id="stories-grid" class="stories-grid">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading your stories...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Story Modal -->
+    <div id="story-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Create New Story</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="story-form">
+                <div class="form-group">
+                    <label for="story-title">Title</label>
+                    <input type="text" id="story-title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="story-description">Description</label>
+                    <textarea id="story-description" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="story-genre">Genre</label>
+                    <select id="story-genre" required>
+                        <option value="">Select Genre</option>
+                        <option value="fantasy">Fantasy</option>
+                        <option value="scifi">Sci-Fi</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="romance">Romance</option>
+                        <option value="horror">Horror</option>
+                        <option value="thriller">Thriller</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="story-price">Price per Chapter (fixed at ₹1)</label>
+                    <input type="number" id="story-price" min="1" step="1" value="1" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="story-cover">Cover Artwork</label>
+                    <input type="file" id="story-cover" accept="image/*">
+                </div>
+
+                <div class="chapter-list">
+                    <h4>Chapters</h4>
+                    <p style="margin: 0 0 1rem; color: var(--text-secondary);">The first 2 chapters are free automatically. All later chapters stay behind the paywall.</p>
+                    <div id="chapters-list"></div>
+                    <button type="button" class="btn-create" onclick="addChapter()">Add Chapter</button>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-create">Save Story</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentStory = null;
+        let chapters = [];
+
+        // Check authentication
+        async function ensureAuthenticated() {
+            const response = await fetch('/api/users/me');
+            if (!response.ok) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Load user's stories
+        async function loadStories() {
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) return;
+
+                const response = await fetch('/api/stories/mine');
+
+                if (!response.ok) {
+                    throw new Error('Failed to load stories');
+                }
+
+                const stories = await response.json();
+                const grid = document.getElementById('stories-grid');
+
+                if (!stories.length) {
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                            <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>No stories yet. Create your first story!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = stories.map(story => `
+                    <div class="story-card">
+                        <div class="story-title">${story.title}</div>
+                        <div class="story-status ${story.isPublished ? 'status-published' : 'status-draft'}">
+                            ${story.isPublished ? 'Published' : 'Draft'}
+                        </div>
+                        <div class="story-meta">
+                            ${story.chapters.length} chapters • First ${Math.min(story.chapters.length, 2)} free • ₹1.00/chapter
+                        </div>
+                        <div class="story-actions">
+                            <button class="btn-action btn-publish" onclick="publishStory('${story._id}')" ${story.isPublished ? 'disabled' : ''}>
+                                ${story.isPublished ? 'Live' : 'Publish'}
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteStory('${story._id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading stories:', error);
+            }
+        }
+
+        // Show create story modal
+        function showCreateStoryModal() {
+            currentStory = null;
+            chapters = [];
+            document.getElementById('modal-title').textContent = 'Create New Story';
+            document.getElementById('story-form').reset();
+            updateChaptersList();
+            document.getElementById('story-modal').classList.add('show');
+        }
+
+        // Add chapter
+        function addChapter() {
+            const chapter = {
+                id: Date.now(),
+                title: `Chapter ${chapters.length + 1}`,
+                content: '',
+                isFree: chapters.length < 2
+            };
+            chapters.push(chapter);
+            updateChaptersList();
+        }
+
+        // Update chapters list in modal
+        function updateChaptersList() {
+            const list = document.getElementById('chapters-list');
+            list.innerHTML = chapters.map((chapter, index) => `
+                <div class="chapter-item">
+                    <div>
+                        <strong>${chapter.title}</strong>
+                        ${index < 2 ? '<span style="color: #28a745;">(Free)</span>' : '<span style="color: #dc3545;">(Paid)</span>'}
+                    </div>
+                    <div class="chapter-actions">
+                        <button type="button" onclick="editChapter(${index})">Edit</button>
+                        <button type="button" onclick="deleteChapter(${index})" style="background: #dc3545; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer;">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Edit chapter
+        function editChapter(index) {
+            const chapter = chapters[index];
+            const newTitle = prompt('Chapter Title:', chapter.title);
+            const newContent = prompt('Chapter Content:', chapter.content);
+            if (newTitle !== null) {
+                chapters[index] = { ...chapter, title: newTitle, content: newContent, isFree: index < 2 };
+                updateChaptersList();
+            }
+        }
+
+        // Delete chapter
+        function deleteChapter(index) {
+            if (confirm('Are you sure you want to delete this chapter?')) {
+                chapters.splice(index, 1);
+                updateChaptersList();
+            }
+        }
+
+        // Save story
+        document.getElementById('story-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (chapters.length === 0) {
+                alert('Please add at least one chapter');
+                return;
+            }
+
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) return;
+
+                const formData = new FormData();
+                formData.append('title', document.getElementById('story-title').value);
+                formData.append('description', document.getElementById('story-description').value);
+                formData.append('genre', document.getElementById('story-genre').value);
+                formData.append('price', 1);
+                formData.append('chapters', JSON.stringify(chapters));
+
+                const coverFile = document.getElementById('story-cover').files[0];
+                if (coverFile) {
+                    formData.append('coverImage', coverFile);
+                }
+
+                const response = await fetch('/api/stories', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Story created successfully!');
+                    closeModal();
+                    loadStories();
+                } else {
+                    alert(data.error || 'Failed to create story');
+                }
+            } catch (error) {
+                console.error('Error creating story:', error);
+                alert('Failed to create story');
+            }
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('story-modal').classList.remove('show');
+        }
+
+        async function publishStory(storyId) {
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) return;
+
+                const response = await fetch(`/api/stories/${storyId}/publish`, {
+                    method: 'PUT'
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to publish story');
+                }
+
+                loadStories();
+            } catch (error) {
+                console.error('Publish error:', error);
+                alert(error.message);
+            }
+        }
+
+        async function deleteStory(storyId) {
+            if (!confirm('Delete this story?')) {
+                return;
+            }
+
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) return;
+
+                const response = await fetch(`/api/stories/${storyId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to delete story');
+                }
+
+                loadStories();
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert(error.message);
+            }
+        }
+
+        // Initialize
+        loadStories();
+    </script>
+</body>
+</html>

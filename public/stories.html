@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stories - PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .stories-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stories-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .stories-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .stories-header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .story-card {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .story-cover {
+            height: 200px;
+            background-color: var(--border-color);
+            overflow: hidden;
+        }
+
+        .story-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .story-info {
+            padding: 1.5rem;
+        }
+
+        .story-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .story-author {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .story-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .story-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .story-genre {
+            background: var(--main-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            text-transform: capitalize;
+        }
+
+        .story-chapters {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-width: 150px;
+        }
+
+        .search-input {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--bg-color);
+            color: var(--text-color);
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-filter {
+            padding: 0.75rem 1.5rem;
+            background: var(--main-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-filter:hover {
+            background: #2c5457;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .no-stories {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .user-role-badge {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--main-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .story-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.6rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .story-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .story-stat i { font-size: 0.75rem; }
+        .story-stat.likes i { color: #e74c3c; }
+        .story-stat.comments i { color: var(--main-color); }
+    </style>
+</head>
+<body>
+    <div class="user-role-badge" id="user-role-badge"></div>
+
+    <div class="stories-container">
+        <div class="stories-header">
+            <h1>Discover Stories</h1>
+            <p>Read amazing stories from talented writers. The first two chapters are free, then the rest unlock behind the paywall.</p>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-controls">
+                <select id="genre-filter" class="filter-select">
+                    <option value="">All Genres</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="scifi">Sci-Fi</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="romance">Romance</option>
+                    <option value="horror">Horror</option>
+                    <option value="thriller">Thriller</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="search-input" class="search-input" placeholder="Search stories...">
+                <button class="btn-filter" onclick="applyFilters()">Filter</button>
+            </div>
+        </div>
+
+        <div id="stories-grid" class="stories-grid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading stories...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allStories = [];
+        let filteredStories = [];
+
+        // Check authentication and get user info
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/users/me');
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                        return null;
+                    }
+                    throw new Error('Failed to get user info');
+                }
+
+                const user = await response.json();
+                document.getElementById('user-role-badge').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                return true;
+            } catch (error) {
+                console.error('Auth check error:', error);
+                return null;
+            }
+        }
+
+        // Load stories
+        async function loadStories() {
+            try {
+                const isAuthenticated = await checkAuth();
+                if (!isAuthenticated) return;
+
+                const response = await fetch('/api/stories/published');
+
+                if (!response.ok) {
+                    throw new Error('Failed to load stories');
+                }
+
+                const stories = await response.json();
+                allStories = stories;
+                filteredStories = [...stories];
+                displayStories(filteredStories);
+                loadStoryCounts(filteredStories);
+            } catch (error) {
+                console.error('Error loading stories:', error);
+                document.getElementById('stories-grid').innerHTML = `
+                    <div class="no-stories">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load stories. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display stories
+        function displayStories(stories) {
+            const grid = document.getElementById('stories-grid');
+
+            if (stories.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-stories">
+                        <i class="fas fa-book-open"></i>
+                        <p>No stories found matching your criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = stories.map(story => `
+                <div class="story-card" data-story-id="${story._id}">
+                    <div class="story-cover">
+                        <img src="${story.coverImage || 'images/work1.jpeg'}" alt="${story.title || 'Story cover'}" onerror="this.onerror=null;this.src='images/work1.jpeg';">
+                    </div>
+                    <div class="story-info">
+                        <h3 class="story-title">${story.title}</h3>
+                        <div class="story-author">Created by ${story.createdBy || story.author.name}</div>
+                        <div class="story-description">${story.description}</div>
+                        <div class="story-meta">
+                            <span class="story-genre">${story.genre}</span>
+                            <div class="story-chapters">
+                                <i class="fas fa-book"></i>
+                                <span>${story.chapterCount || story.chapters.length} chapters</span>
+                            </div>
+                        </div>
+                        <div class="story-stats">
+                            <span class="story-stat likes"><i class="fas fa-heart"></i> <span data-like-id="${story._id}">--</span></span>
+                            <span class="story-stat comments"><i class="fas fa-comment"></i> <span data-comment-id="${story._id}">--</span></span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const genre = document.getElementById('genre-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            filteredStories = allStories.filter(story => {
+                const matchesGenre = !genre || story.genre === genre;
+                const matchesSearch = !searchTerm ||
+                    story.title.toLowerCase().includes(searchTerm) ||
+                    story.description.toLowerCase().includes(searchTerm) ||
+                    (story.createdBy || story.author.name).toLowerCase().includes(searchTerm);
+
+                return matchesGenre && matchesSearch;
+            });
+
+            displayStories(filteredStories);
+            loadStoryCounts(filteredStories);
+        }
+
+        // Open story
+        function openStory(storyId) {
+            window.location.href = `reader.html?id=${storyId}`;
+        }
+
+
+        // Load aggregate like + comment counts for all visible story cards
+        async function loadStoryCounts(stories) {
+            await Promise.all(stories.map(async story => {
+                try {
+                    const res = await fetch(`/api/stories/${story._id}/stats`);
+                    const data = res.ok ? await res.json() : { totalLikes: 0, totalComments: 0 };
+                    const likeEl    = document.querySelector(`[data-like-id="${story._id}"]`);
+                    const commentEl = document.querySelector(`[data-comment-id="${story._id}"]`);
+                    if (likeEl)    likeEl.textContent    = data.totalLikes;
+                    if (commentEl) commentEl.textContent = data.totalComments;
+                } catch (e) { console.error('Stats error', story._id, e); }
+            }));
+        }
+
+        // Initialize
+        loadStories();
+
+        // Add search input listener
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+
+        document.getElementById('stories-grid').addEventListener('click', (event) => {
+            const card = event.target.closest('.story-card');
+            if (!card) {
+                return;
+            }
+
+            const storyId = card.dataset.storyId;
+            if (storyId) {
+                openStory(storyId);
+            }
+        });
+    </script>
+</body>
+</html>

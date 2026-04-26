@@ -1,0 +1,846 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter View - PixelScript</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --reader-bg: #3f6d71;
+            --reader-text: #1f1912;
+            --reader-muted: rgba(31, 25, 18, 0.66);
+            --chrome-bg: rgba(241, 244, 248, 0.84);
+            --chrome-border: rgba(62, 47, 28, 0.12);
+            --chip-bg: rgba(31, 25, 18, 0.08);
+            --chip-text: #221b13;
+            --panel-bg: #d9e5ed;
+            --panel-surface: #fffdf9;
+            --nav-bg: rgba(31, 25, 18, 0.78);
+            --nav-text: #fff;
+        }
+
+        body.dark-mode {
+            --reader-bg: #0f1014;
+            --reader-text: #f4f1ea;
+            --reader-muted: rgba(244, 241, 234, 0.7);
+            --chrome-bg: rgba(12, 13, 18, 0.8);
+            --chrome-border: rgba(255, 255, 255, 0.08);
+            --chip-bg: rgba(255, 255, 255, 0.08);
+            --chip-text: #fff;
+            --panel-bg: #11131a;
+            --panel-surface: #161922;
+            --nav-bg: rgba(7, 8, 11, 0.82);
+            --nav-text: #fff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: var(--reader-bg);
+            color: var(--reader-text);
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .page {
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: var(--chrome-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--chrome-border);
+            transition: transform 0.24s ease, opacity 0.24s ease, background 0.25s ease;
+        }
+
+        .topbar.hidden {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+
+        .chrome-btn,
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 46px;
+            height: 46px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid var(--chrome-border);
+            background: var(--chip-bg);
+            color: var(--reader-text);
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .topbar-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .story-head {
+            min-width: 0;
+        }
+
+        .story-head h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--reader-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .story-subline {
+            margin-top: 4px;
+            color: var(--reader-muted);
+            font-size: 0.92rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: var(--chip-bg);
+            color: var(--chip-text);
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .reader-stage {
+            min-height: 100vh;
+            padding-top: 78px;
+            background: var(--panel-bg);
+        }
+
+        .panel-stack {
+            width: min(100vw, 1240px);
+            margin: 0 auto;
+            padding: 0 12px 100px;
+        }
+
+        .panel-frame {
+            width: 100%;
+            background: var(--panel-surface);
+            overflow: hidden;
+        }
+
+        .panel-frame + .panel-frame {
+            margin-top: 12px;
+        }
+
+        .panel-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: var(--panel-surface);
+        }
+
+        .empty-state {
+            width: min(100vw, 760px);
+            margin: 42px auto 120px;
+            padding: 28px;
+            border-radius: 24px;
+            background: var(--panel-surface);
+            border: 1px solid var(--chrome-border);
+            color: var(--reader-text);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .chapter-nav {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 45;
+        }
+
+        .chapter-nav a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 132px;
+            padding: 13px 18px;
+            border-radius: 999px;
+            background: var(--nav-bg);
+            color: var(--nav-text);
+            text-decoration: none;
+            font-weight: 700;
+            backdrop-filter: blur(14px);
+        }
+
+        .chapter-nav a.disabled {
+            opacity: 0.42;
+            pointer-events: none;
+        }
+
+        .scroll-top-btn {
+            position: fixed;
+            right: 18px;
+            bottom: 92px;
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            border: 1px solid var(--chrome-border);
+            background: var(--nav-bg);
+            color: var(--nav-text);
+            cursor: pointer;
+            z-index: 45;
+        }
+
+        @media (max-width: 720px) {
+            .topbar {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .back-btn span,
+            .chrome-btn span {
+                display: none;
+            }
+
+            .story-head h1 {
+                font-size: 1rem;
+            }
+
+            .story-subline {
+                font-size: 0.82rem;
+            }
+
+            .chapter-chip {
+                padding: 8px 12px;
+                font-size: 0.82rem;
+            }
+
+            .chapter-nav {
+                width: calc(100% - 24px);
+            }
+
+            .chapter-nav a {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .panel-stack {
+                width: 100%;
+                padding: 0 0 100px;
+            }
+        }
+
+        /* ===== CHAPTER ENGAGEMENT SECTION ===== */
+        .engagement-section {
+            width: min(100vw, 860px);
+            margin: 0 auto 100px;
+            padding: 2rem 1.5rem;
+        }
+
+        .engagement-divider {
+            border: none;
+            border-top: 1px solid var(--chrome-border);
+            margin: 0 0 2rem;
+        }
+
+        .like-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-like {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 2rem;
+            border: 2px solid var(--chrome-border);
+            background: var(--chip-bg);
+            color: var(--chip-text);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-like:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            transform: scale(1.04);
+        }
+
+        .btn-like.liked {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: white;
+        }
+
+        .like-count { font-size: 0.9rem; color: var(--reader-muted); }
+
+        .comments-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--reader-text);
+            margin: 0 0 1rem;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-form textarea {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--chrome-border);
+            border-radius: 0.75rem;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: var(--panel-surface);
+            color: var(--reader-text);
+            min-height: 72px;
+            transition: border-color 0.2s;
+        }
+
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: #3f6d71;
+        }
+
+        .btn-comment-submit {
+            padding: 0 1.2rem;
+            background: #3f6d71;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            align-self: flex-end;
+            height: 42px;
+            white-space: nowrap;
+        }
+
+        .btn-comment-submit:hover:not(:disabled) { background: #2c5457; transform: translateY(-1px); }
+        .btn-comment-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .comments-list { display: flex; flex-direction: column; gap: 0.85rem; }
+
+        .comment-card {
+            background: var(--panel-surface);
+            border: 1px solid var(--chrome-border);
+            border-radius: 0.85rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--reader-text);
+        }
+
+        .comment-author img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-date { font-size: 0.78rem; color: var(--reader-muted); }
+
+        .comment-text {
+            font-size: 0.92rem;
+            color: var(--reader-text);
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        .btn-delete-comment {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 0.78rem;
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.3rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .btn-delete-comment:hover { opacity: 1; }
+
+        .comments-empty, .comments-loading {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--reader-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="topbar">
+            <a id="back-link" class="back-btn" href="stories.html">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Story</span>
+            </a>
+            <div class="topbar-main">
+                <div class="story-head">
+                    <h1 id="story-title"></h1>
+                    <div id="story-detail-line" class="story-subline"></div>
+                </div>
+                <div id="chapter-meta-top" class="chapter-chip"></div>
+            </div>
+            <button id="theme-toggle" class="chrome-btn" type="button" aria-label="Toggle dark reader mode">
+                <i class="fas fa-moon"></i>
+                <span>Reader Mode</span>
+            </button>
+        </header>
+
+        <section class="reader-stage">
+            <div id="panel-stack" class="panel-stack"></div>
+        </section>
+
+        <nav class="chapter-nav">
+            <a id="prev-link" href="#" class="disabled"><i class="fas fa-arrow-left"></i> Previous</a>
+            <a id="next-link" href="#" class="disabled">Next <i class="fas fa-arrow-right"></i></a>
+        </nav>
+
+        <button id="scroll-top-btn" class="scroll-top-btn" type="button" title="Scroll to top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+
+        <!-- CHAPTER ENGAGEMENT: LIKES + COMMENTS -->
+        <section class="engagement-section" id="engagement-section">
+            <hr class="engagement-divider">
+            <div class="like-bar">
+                <button class="btn-like" id="btn-like" onclick="toggleLike()">
+                    <i class="fas fa-heart"></i>
+                    <span id="like-label">Like this chapter</span>
+                </button>
+                <span class="like-count" id="like-count-text"></span>
+            </div>
+            <div class="comments-section">
+                <h3><i class="fas fa-comments" style="color:#3f6d71;margin-right:0.4rem;"></i>Reader Comments (<span id="comment-count">0</span>)</h3>
+                <div class="comment-form">
+                    <textarea id="comment-input" placeholder="Share your thoughts on this chapter..." maxlength="1000" rows="3"></textarea>
+                    <button class="btn-comment-submit" id="btn-post-comment" onclick="postComment()">Post</button>
+                </div>
+                <div class="comments-list" id="comments-list">
+                    <div class="comments-loading"><i class="fas fa-spinner fa-spin"></i> Loading comments...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const storyId = params.get('story');
+        const chapterId = params.get('chapter');
+        const themeStorageKey = 'pixelscript-reader-theme';
+        let lastScrollY = 0;
+
+        function getChapterPanels(story, chapter) {
+            const chapterPanels = Array.isArray(chapter?.panels) ? chapter.panels.filter(panel => panel?.imageUrl) : [];
+            if (chapterPanels.length) {
+                return chapterPanels;
+            }
+
+            const boardPanels = Array.isArray(story?.projectBoard?.panels) ? story.projectBoard.panels.filter(panel => panel?.imageUrl) : [];
+            if (boardPanels.length) {
+                return boardPanels;
+            }
+
+            const fallbackPanels = [];
+            if (story?.projectBoard?.canvasPreview) {
+                fallbackPanels.push({
+                    title: 'Panel 1',
+                    imageUrl: story.projectBoard.canvasPreview
+                });
+            }
+            (story?.projectBoard?.artwork || [])
+                .filter(asset => asset?.url && asset.url !== story?.projectBoard?.canvasPreview)
+                .forEach((asset, index) => {
+                    fallbackPanels.push({
+                        title: asset.name || `Panel ${fallbackPanels.length + index + 1}`,
+                        imageUrl: asset.url
+                    });
+                });
+            return fallbackPanels;
+        }
+
+        function renderPanels(story, chapter) {
+            const panelStack = document.getElementById('panel-stack');
+            const panels = getChapterPanels(story, chapter);
+
+            if (!panels.length) {
+                panelStack.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No chapter panels yet</h2>
+                        <p>This chapter does not have saved comic panels yet. Ask the collaborators to save their workspace canvases as chapter panels before publishing.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            panelStack.innerHTML = panels.map((panel, index) => `
+                <article class="panel-frame">
+                    <img src="${panel.imageUrl}" alt="${panel.title || `Chapter panel ${index + 1}`}">
+                </article>
+            `).join('');
+        }
+
+        function bindChapterNav(story) {
+            const prev = document.getElementById('prev-link');
+            const next = document.getElementById('next-link');
+            const accessible = (story.chapters || []).filter(chapter => chapter.hasAccess);
+            const currentAccessibleIndex = accessible.findIndex(chapter => String(chapter._id) === String(chapterId));
+
+            const prevChapter = currentAccessibleIndex > 0 ? accessible[currentAccessibleIndex - 1] : null;
+            const nextChapter = currentAccessibleIndex >= 0 && currentAccessibleIndex < accessible.length - 1
+                ? accessible[currentAccessibleIndex + 1]
+                : null;
+
+            if (prevChapter) {
+                prev.href = `chapter-view.html?story=${story._id}&chapter=${prevChapter._id}`;
+                prev.classList.remove('disabled');
+            } else {
+                prev.classList.add('disabled');
+            }
+
+            if (nextChapter) {
+                next.href = `chapter-view.html?story=${story._id}&chapter=${nextChapter._id}`;
+                next.classList.remove('disabled');
+            } else {
+                next.classList.add('disabled');
+            }
+        }
+
+        function setTheme(theme) {
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+            localStorage.setItem(themeStorageKey, theme);
+            const icon = document.querySelector('#theme-toggle i');
+            const label = document.querySelector('#theme-toggle span');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            if (label) {
+                label.textContent = theme === 'dark' ? 'Light Mode' : 'Reader Mode';
+            }
+        }
+
+        function bindReaderChrome() {
+            const topbar = document.querySelector('.topbar');
+            const scrollTopBtn = document.getElementById('scroll-top-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            window.addEventListener('scroll', () => {
+                const currentY = window.scrollY;
+                if (currentY > lastScrollY && currentY > 88) {
+                    topbar?.classList.add('hidden');
+                } else {
+                    topbar?.classList.remove('hidden');
+                }
+                lastScrollY = currentY;
+            }, { passive: true });
+
+            scrollTopBtn?.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            themeToggle?.addEventListener('click', () => {
+                const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+                setTheme(nextTheme);
+            });
+
+            setTheme(localStorage.getItem(themeStorageKey) || 'dark');
+        }
+
+        async function loadStory() {
+            if (!storyId || !chapterId) {
+                window.location.href = 'stories.html';
+                return;
+            }
+
+            let response = await fetch(`/api/stories/${storyId}`);
+
+            if (!response.ok) {
+                response = await fetch(`/api/stories/public/${storyId}`);
+            }
+
+            if (!response.ok) {
+                alert('Failed to load chapter');
+                window.location.href = 'stories.html';
+                return;
+            }
+
+            const story = await response.json();
+            const chapter = (story.chapters || []).find(item => String(item._id) === String(chapterId));
+
+            if (!chapter || !chapter.hasAccess) {
+                window.location.href = `reader.html?id=${storyId}`;
+                return;
+            }
+
+            document.getElementById('back-link').href = `reader.html?id=${storyId}`;
+            document.getElementById('story-title').textContent = story.title;
+            document.getElementById('story-detail-line').textContent = `${story.createdBy || story.author.name} | ${story.genre} | ${new Date(story.createdAt).toLocaleDateString()}`;
+            document.getElementById('chapter-meta-top').textContent = `Chapter ${chapter.order}`;
+
+            renderPanels(story, chapter);
+            bindChapterNav(story);
+            initEngagement(story, chapter);
+        }
+
+
+        // ===== PER-CHAPTER LIKES & COMMENTS =====
+        let currentUserId = null;
+        let currentStoryAuthorId = null;
+
+        async function initEngagement(story, chapter) {
+            currentStoryAuthorId = story.author?._id || story.author;
+            try {
+                const meRes = await fetch('/api/users/me');
+                if (meRes.ok) {
+                    const me = await meRes.json();
+                    currentUserId = me._id || me.id;
+                }
+            } catch (_) {}
+            loadLikes(story._id, chapter._id);
+            loadComments(story._id, chapter._id);
+        }
+
+        async function loadLikes(sId, cId) {
+            try {
+                const res = await fetch(`/api/stories/${sId}/chapters/${cId}/likes`);
+                if (!res.ok) return;
+                const data = await res.json();
+                updateLikeUI(data.liked, data.count);
+            } catch (e) { console.error('Failed to load likes:', e); }
+        }
+
+        function updateLikeUI(liked, count) {
+            const btn = document.getElementById('btn-like');
+            const label = document.getElementById('like-label');
+            const countEl = document.getElementById('like-count-text');
+            btn.classList.toggle('liked', liked);
+            label.textContent = liked ? 'Liked!' : 'Like this chapter';
+            countEl.textContent = count === 1 ? '1 like' : `${count} likes`;
+        }
+
+        async function toggleLike() {
+            if (!storyId || !chapterId) return;
+            try {
+                const res = await fetch(`/api/stories/${storyId}/chapters/${chapterId}/like`, { method: 'POST' });
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                if (!res.ok) return;
+                const data = await res.json();
+                updateLikeUI(data.liked, data.count);
+            } catch (e) { console.error('Like error:', e); }
+        }
+
+        let commentsPage = 1, totalCommentPages = 1;
+
+        async function loadComments(sId, cId, page = 1) {
+            try {
+                const res = await fetch(`/api/comments/${sId}/${cId}?page=${page}&limit=20`);
+                if (!res.ok) return;
+                const data = await res.json();
+                commentsPage = data.page;
+                totalCommentPages = data.pages;
+                document.getElementById('comment-count').textContent = data.total;
+                renderComments(data.comments, page > 1);
+            } catch (e) {
+                document.getElementById('comments-list').innerHTML = '<div class="comments-empty">Failed to load comments.</div>';
+            }
+        }
+
+        function renderComments(comments, append = false) {
+            const list = document.getElementById('comments-list');
+            if (!append) list.innerHTML = '';
+
+            if (!comments.length && !append) {
+                list.innerHTML = '<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>';
+                return;
+            }
+
+            comments.forEach(comment => {
+                const authorId = comment.author?._id || comment.author;
+                const canDelete = currentUserId && (
+                    String(authorId) === String(currentUserId) ||
+                    String(currentStoryAuthorId) === String(currentUserId)
+                );
+                const avatarSrc = comment.author?.profilePicture || 'images/user-1.png';
+                const authorName = comment.author?.name || comment.author?.username || 'Reader';
+
+                const card = document.createElement('div');
+                card.className = 'comment-card';
+                card.dataset.commentId = comment._id;
+                card.innerHTML = `
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <img src="${avatarSrc}" alt="${authorName}" onerror="this.src='images/user-1.png'">
+                            ${escapeHtml(authorName)}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="comment-date">${formatTimeAgo(new Date(comment.createdAt))}</span>
+                            ${canDelete ? `<button class="btn-delete-comment" onclick="deleteComment('${comment._id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="comment-text">${escapeHtml(comment.text)}</div>
+                `;
+                list.appendChild(card);
+            });
+
+            if (commentsPage < totalCommentPages) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-comment-submit';
+                btn.style.cssText = 'width:100%;margin-top:0.5rem;height:auto;padding:0.6rem;';
+                btn.textContent = 'Load more comments';
+                btn.onclick = () => { btn.remove(); loadComments(storyId, chapterId, commentsPage + 1); };
+                list.appendChild(btn);
+            }
+        }
+
+        async function postComment() {
+            const input = document.getElementById('comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const btn = document.getElementById('btn-post-comment');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/comments/${storyId}/${chapterId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (res.status === 401) { window.location.href = 'login.html'; return; }
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert(err.error || 'Failed to post comment');
+                    return;
+                }
+
+                const comment = await res.json();
+                input.value = '';
+
+                const list = document.getElementById('comments-list');
+                const empty = list.querySelector('.comments-empty');
+                if (empty) empty.remove();
+
+                const authorId = comment.author?._id || comment.author;
+                const avatarSrc = comment.author?.profilePicture || 'images/user-1.png';
+                const authorName = comment.author?.name || comment.author?.username || 'Reader';
+                const canDelete = currentUserId && String(authorId) === String(currentUserId);
+
+                const card = document.createElement('div');
+                card.className = 'comment-card';
+                card.dataset.commentId = comment._id;
+                card.innerHTML = `
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <img src="${avatarSrc}" alt="${authorName}" onerror="this.src='images/user-1.png'">
+                            ${escapeHtml(authorName)}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span class="comment-date">Just now</span>
+                            ${canDelete ? `<button class="btn-delete-comment" onclick="deleteComment('${comment._id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="comment-text">${escapeHtml(comment.text)}</div>
+                `;
+                list.insertBefore(card, list.firstChild);
+
+                const countEl = document.getElementById('comment-count');
+                countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+            } catch (e) {
+                console.error('Post comment error:', e);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (!confirm('Delete this comment?')) return;
+            try {
+                const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+                if (!res.ok) { alert('Failed to delete comment'); return; }
+                const card = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+                if (card) card.remove();
+                const countEl = document.getElementById('comment-count');
+                const cur = parseInt(countEl.textContent || '0');
+                if (cur > 0) countEl.textContent = cur - 1;
+            } catch (e) { console.error('Delete comment error:', e); }
+        }
+
+        function formatTimeAgo(date) {
+            const s = Math.floor((Date.now() - date.getTime()) / 1000);
+            if (s < 60) return 'Just now';
+            if (s < 3600) return `${Math.floor(s/60)}m ago`;
+            if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+            return `${Math.floor(s/86400)}d ago`;
+        }
+
+        function escapeHtml(text) {
+            return String(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        bindReaderChrome();
+
+        loadStory().catch(error => {
+            console.error(error);
+            alert('Failed to load chapter');
+        });
+    </script>
+</body>
+</html>
+

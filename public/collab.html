@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelScript - Collaborate</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Collab CSS -->
+    <link rel="stylesheet" href="/css/collab.css">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="/css/responsive.css">
+    <style>
+        :root {
+            --toolbar-height: 76px;
+            --floating-toggle-bottom: 88px;
+        }
+
+        .collab-header {
+            display: none;
+        }
+
+        .drawing-tools {
+            position: fixed;
+            top: 0;
+            bottom: auto;
+            left: 0;
+            right: 0;
+            height: var(--toolbar-height);
+            background: rgba(255, 255, 255, 0.98);
+            padding: 8px 16px;
+            border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+            z-index: 1000;
+            backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
+            overscroll-behavior-y: none;
+            scrollbar-gutter: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-x;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .drawing-tools::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .drawing-tools::-webkit-scrollbar-track {
+            background: rgba(0, 128, 128, 0.05);
+            border-radius: 3px;
+        }
+
+        .drawing-tools::-webkit-scrollbar-thumb {
+            background: rgba(0, 128, 128, 0.3);
+            border-radius: 3px;
+        }
+
+        .drawing-tools::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 128, 128, 0.5);
+        }
+
+        .toolbar-head {
+            display: none;
+        }
+
+        .toolbar-title {
+            display: none;
+        }
+
+        .toolbar-toggle {
+            display: none;
+        }
+
+        .toolbar-panel {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            align-content: center;
+            gap: 10px;
+            padding: 0 2px;
+            max-height: none;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            width: max-content;
+            min-width: max-content;
+            flex-wrap: nowrap;
+        }
+
+        .tool-group {
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 3px 5px;
+            border: 1px solid rgba(0, 128, 128, 0.16);
+            border-radius: 10px;
+            background: #f8fbfb;
+        }
+
+        /* Keep essential paint tools reachable when the toolbar overflows on zoomed viewports. */
+        .toolbar-panel > .tool-group:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            box-shadow: 6px 0 10px rgba(255, 255, 255, 0.95);
+        }
+
+        .tool-group:last-child {
+            border-right: none;
+        }
+
+        .tool-btn {
+            padding: 5px 6px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-weight: 600;
+            font-size: 0.68rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            height: 24px;
+            min-width: 24px;
+            position: relative;
+        }
+
+        .tool-btn.active {
+            background: #008080;
+            color: white;
+        }
+
+        .tool-btn:hover {
+            background: #006666;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn i {
+            font-size: 0.8rem;
+        }
+
+        #color-picker {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        #color-picker:hover {
+            border-color: #008080;
+        }
+
+        #size-slider,
+        #opacity-slider {
+            width: clamp(38px, 4vw, 56px);
+            cursor: pointer;
+            flex-shrink: 0;
+            height: 4px;
+            border-radius: 3px;
+        }
+
+        .slider-stack {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 5px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0, 128, 128, 0.16);
+            border-radius: 10px;
+            background: #f8fbfb;
+        }
+
+        .slider-stack label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: #144b4b;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        #active-layer-select,
+        #blend-mode-select {
+            min-width: 58px !important;
+            height: 24px !important;
+            padding: 0 4px !important;
+            font-size: 11px;
+        }
+
+        #alpha-lock-toggle,
+        #clip-mask-toggle {
+            transform: scale(0.9);
+        }
+
+        @media (max-width: 1400px) {
+            .drawing-tools {
+                padding: 6px 10px;
+            }
+
+            .toolbar-panel {
+                gap: 8px;
+            }
+
+            .tool-group {
+                gap: 3px;
+                padding: 3px 4px;
+            }
+
+            .tool-btn {
+                min-width: 22px;
+                height: 22px;
+                padding: 4px 5px;
+            }
+
+            #active-layer-select,
+            #blend-mode-select {
+                min-width: 52px !important;
+            }
+        }
+
+        .asset-panel {
+            display: none;
+        }
+
+        .asset-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 12px;
+            background: #eef6f6;
+            color: #0b4e4e;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .asset-upload-btn:hover {
+            background: #dff0f0;
+        }
+
+        .asset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: #f7f9fa;
+            font-size: 13px;
+        }
+
+        .asset-item a {
+            color: #0b4e4e;
+            text-decoration: none;
+            word-break: break-word;
+        }
+
+        #drawing-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='2' fill='black'/%3E%3Cpath d='M12 0v9M12 15v9M0 12h9M15 12h9' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E") 12 12, crosshair;
+            z-index: 1;
+        }
+
+        .canvas-grid {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 2;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px;
+            transition: opacity 0.18s ease;
+        }
+
+        .canvas-grid.visible {
+            opacity: 1;
+        }
+
+        .canvas-container {
+            flex-grow: 1;
+            position: fixed;
+            top: var(--toolbar-height);
+            bottom: 0;
+            left: 320px;
+            right: 320px;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 0;
+            box-shadow: none;
+            margin: 0;
+            height: auto;
+            display: flex;
+        }
+
+        .project-panel {
+            position: fixed;
+            top: var(--toolbar-height);
+            bottom: 0;
+            left: 0;
+            width: 320px;
+            height: auto;
+            background: white;
+            border-radius: 0;
+            box-shadow: 4px 0 12px rgba(0,0,0,0.08);
+            padding: 16px;
+            padding-bottom: 106px;
+            z-index: 999;
+            transition: transform 0.28s ease;
+            transform: translateX(0);
+            overflow-y: auto;
+            border-right: 1px solid rgba(0, 128, 128, 0.12);
+        }
+
+        .project-panel.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .project-toggle {
+            position: fixed;
+            left: 20px;
+            bottom: var(--floating-toggle-bottom);
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: #008080;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .project-toggle.panel-open {
+            left: calc(320px + 20px);
+        }
+
+        .project-toggle:hover {
+            background: #006666;
+            transform: scale(1.05);
+        }
+
+        .chat-container {
+            position: fixed;
+            right: 0;
+            top: var(--toolbar-height);
+            bottom: 0;
+            width: 320px;
+            height: auto;
+            background: #eaf4f7;
+            border-radius: 0;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.08);
+            z-index: 999;
+            transition: transform 0.28s ease;
+            transform: translateX(0);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            border-left: 1px solid rgba(63, 109, 113, 0.18);
+        }
+
+        .chat-container.collapsed {
+            transform: translateX(100%);
+        }
+
+        .chat-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #3f6d71, #284b63);
+            color: white;
+            border-radius: 0;
+            flex-shrink: 0;
+        }
+
+        .chat-messages {
+            height: auto;
+            flex-grow: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            padding: 14px 14px 10px;
+            background:
+                radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.28) 1px, transparent 0) 0 0 / 18px 18px,
+                #dfeef4;
+        }
+
+        .writer-ai-cue {
+            margin: 0 12px 8px;
+            border: 1px solid rgba(63, 109, 113, 0.2);
+            border-radius: 12px;
+            background: #f5fbfc;
+            padding: 10px;
+            display: none;
+            gap: 8px;
+            flex-shrink: 0;
+            max-height: 40vh;
+            overflow: hidden;
+        }
+
+        .writer-ai-cue.visible {
+            display: grid;
+        }
+
+        .writer-ai-cue-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .writer-ai-cue-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #335b60;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .writer-ai-cue-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #d7eaef;
+            color: #2b4f54;
+        }
+
+        .writer-ai-cue-list {
+            display: none;
+            gap: 6px;
+            overflow-y: auto;
+            max-height: calc(40vh - 56px);
+            padding-right: 2px;
+        }
+
+        .writer-ai-cue.expanded .writer-ai-cue-list {
+            display: grid;
+        }
+
+        .writer-ai-cue-item {
+            border: 1px solid rgba(63, 109, 113, 0.2);
+            background: #fff;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #2e5055;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .writer-ai-cue-item:hover {
+            background: #eef7f9;
+            border-color: rgba(63, 109, 113, 0.35);
+        }
+
+        .writer-ai-cue-item strong {
+            color: #24464b;
+        }
+
+        .message {
+            margin: 7px 0;
+            max-width: 85%;
+            word-wrap: break-word;
+            font-size: 0.92rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .message-bubble {
+            padding: 9px 11px;
+            border-radius: 10px;
+            line-height: 1.38;
+            white-space: pre-wrap;
+            position: relative;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+        }
+
+        .message-sender {
+            font-size: 0.74rem;
+            letter-spacing: 0.02em;
+            color: #2d5458;
+            font-weight: 700;
+            padding: 0 4px;
+        }
+
+        .message-meta {
+            font-size: 0.7rem;
+            color: rgba(44, 62, 65, 0.65);
+            align-self: flex-end;
+            padding: 0 2px;
+        }
+
+        .message.sent {
+            margin-left: auto;
+            align-items: flex-end;
+        }
+
+        .message.sent .message-bubble {
+            background: #3f6d71;
+            color: #fff;
+            border-top-right-radius: 4px;
+        }
+
+        .message.sent .message-bubble.has-media {
+            background: #4d7e83;
+        }
+
+        .message.sent .message-bubble::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 7px solid #3f6d71;
+            border-right: 0 solid transparent;
+            border-left: 7px solid transparent;
+        }
+
+        .message.received {
+            margin-right: auto;
+            align-items: flex-start;
+        }
+
+        .message.received .message-bubble {
+            background: #ffffff;
+            color: #2a4348;
+            border-top-left-radius: 4px;
+            border: 1px solid rgba(63, 109, 113, 0.15);
+        }
+
+        .chat-attachment {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            max-width: 240px;
+        }
+
+        .chat-attachment img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .chat-file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #2c4f54;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 9px;
+            border-radius: 8px;
+            background: rgba(63, 109, 113, 0.12);
+        }
+
+        .chat-file-link:hover {
+            background: rgba(63, 109, 113, 0.2);
+        }
+
+        .chat-caption {
+            font-size: 0.86rem;
+            color: #2c4c50;
+            line-height: 1.35;
+            white-space: pre-wrap;
+        }
+
+        .message.received .message-bubble::after {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-top: 7px solid #fff;
+            border-right: 7px solid transparent;
+            border-left: 0 solid transparent;
+        }
+
+        .message.system {
+            background: #f8f9fa;
+            color: #666;
+            text-align: center;
+            margin: 10px auto;
+            font-style: italic;
+            font-size: 0.9em;
+            border-radius: 999px;
+            padding: 7px 14px;
+        }
+
+        .chat-input {
+            padding: 10px 14px 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+            flex-shrink: 0;
+            align-items: stretch;
+            background: #e7f1f5;
+            position: relative;
+        }
+
+        .chat-input-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .chat-input textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(63, 109, 113, 0.26);
+            border-radius: 18px;
+            outline: none;
+            font-size: 0.95rem;
+            min-height: 74px;
+            max-height: 170px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.35;
+            font-family: inherit;
+        }
+
+        .chat-input textarea:focus {
+            border-color: rgba(63, 109, 113, 0.65);
+            box-shadow: 0 0 0 2px rgba(63, 109, 113, 0.16);
+        }
+
+        .chat-action-btn {
+            background: #c9dfe7;
+            color: #27464b;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .chat-action-btn:hover {
+            background: #b6d1dc;
+            transform: translateY(-1px);
+        }
+
+        .chat-action-btn.active {
+            background: #3f6d71;
+            color: #fff;
+        }
+
+        .chat-send-btn {
+            background: #3f6d71;
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .chat-send-btn:hover {
+            background: #284b63;
+            transform: translateY(-1px);
+        }
+
+        .emoji-panel {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: calc(100% + 8px);
+            background: #ffffff;
+            border: 1px solid rgba(63, 109, 113, 0.28);
+            border-radius: 14px;
+            box-shadow: 0 12px 24px rgba(40, 75, 99, 0.14);
+            padding: 8px;
+            z-index: 2;
+        }
+
+        .emoji-panel[hidden] {
+            display: none;
+        }
+
+        .emoji-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .emoji-tab {
+            border: none;
+            background: #e2eef3;
+            color: #2e4e54;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .emoji-tab.active {
+            background: #3f6d71;
+            color: #fff;
+        }
+
+        .emoji-panel-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .emoji-set-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #3b5f64;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .emoji-top-btn {
+            border: none;
+            background: #d9e8ef;
+            color: #2f5258;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .emoji-top-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        .emoji-grid {
+            max-height: 165px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 6px;
+            padding-right: 2px;
+        }
+
+        .emoji-chip {
+            border: none;
+            background: #edf4f7;
+            border-radius: 10px;
+            height: 34px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #2e4c52;
+        }
+
+        .emoji-chip:hover {
+            background: #d9e8ef;
+        }
+
+        .emoji-chip[data-kind="symbol"] {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .minimize-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: var(--floating-toggle-bottom);
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: #3f6d71;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chat-toggle.panel-open {
+            right: calc(320px + 20px);
+        }
+
+        .chat-toggle:hover {
+            background: #284b63;
+            transform: scale(1.05);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-panel h3 {
+            margin: 0 0 12px;
+        }
+
+        .project-panel .field {
+            margin-bottom: 12px;
+        }
+
+        .project-panel label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .project-panel input,
+        .project-panel textarea {
+            width: 100%;
+            border: 1px solid #d9e4e5;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font: inherit;
+        }
+
+        .project-panel textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .panel-builder {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e6ecec;
+        }
+
+        .panel-builder-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .panel-builder-head p {
+            margin: 4px 0 0;
+            font-size: 0.92rem;
+            color: #557272;
+        }
+
+        .panel-save-btn {
+            border: none;
+            border-radius: 12px;
+            background: #0f766e;
+            color: white;
+            padding: 10px 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .panel-save-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .panel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .panel-card {
+            display: grid;
+            grid-template-columns: 76px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #dbe6e7;
+            border-radius: 14px;
+            background: #fbfdfd;
+        }
+
+        .panel-card img {
+            width: 76px;
+            height: 76px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f1f5f5;
+            border: 1px solid #d8e3e4;
+        }
+
+        .panel-meta strong {
+            display: block;
+            color: #173c3c;
+            margin-bottom: 4px;
+        }
+
+        .panel-meta span {
+            color: #557272;
+            font-size: 0.9rem;
+        }
+
+        .panel-remove-btn {
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: #fbe4e4;
+            color: #a33f3f;
+            cursor: pointer;
+        }
+
+        .panel-empty {
+            padding: 12px;
+            border-radius: 12px;
+            background: #f5f8f8;
+            color: #638181;
+            font-size: 0.95rem;
+        }
+
+        .project-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .project-actions button,
+        .project-actions a {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .project-actions .primary {
+            background: #0b6a68;
+            color: #fff;
+        }
+
+        .project-actions .secondary {
+            background: #edf5f5;
+            color: #123d41;
+        }
+
+        .project-status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #46666a;
+        }
+
+        @media (max-width: 768px) {
+            .drawing-tools {
+                position: static;
+                width: auto;
+                height: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                border-top: none;
+                border-bottom: 1px solid rgba(0, 128, 128, 0.15);
+                margin-bottom: 12px;
+            }
+
+            .canvas-container {
+                margin: 0;
+                margin-bottom: 0;
+                height: auto;
+            }
+
+            .project-panel {
+                position: static;
+                width: 100%;
+                height: auto;
+                transform: none;
+                border: none;
+                box-shadow: none;
+                margin-bottom: 12px;
+                overflow: visible;
+            }
+
+            .project-panel.collapsed {
+                transform: none;
+                display: none;
+            }
+
+            .project-toggle {
+                position: static;
+                width: calc(100% - 32px);
+                margin: 12px 16px;
+                bottom: auto;
+                left: auto;
+            }
+
+            .chat-container {
+                position: static;
+                width: 100%;
+                height: auto;
+                transform: none;
+                border: none;
+                box-shadow: none;
+                margin-top: 12px;
+                flex-direction: column;
+                padding-bottom: 0;
+            }
+
+            .chat-container.collapsed {
+                transform: none;
+                display: none;
+            }
+
+            .chat-toggle {
+                position: static;
+                width: calc(100% - 32px);
+                margin: 12px 16px;
+                bottom: auto;
+                right: auto;
+            }
+
+            .emoji-grid {
+                grid-template-columns: repeat(7, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="collab-container">
+        <!-- Header -->
+        <header class="collab-header">
+            <div class="logo">
+                <img src="images/logo.png" alt="PixelScript Logo">
+            </div>
+            <div class="collab-info">
+                <h2>Collaboration Space</h2>
+                <div class="partner-info">
+                    <span id="partner-name">Waiting for partner...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Panel: Story Board -->
+        <button id="project-toggle" class="project-toggle" type="button" title="Toggle story board">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <aside id="project-panel" class="project-panel">
+            <h3>Project Story Board</h3>
+            <div class="field">
+                <label for="story-title-input">Story Title</label>
+                <input id="story-title-input" placeholder="Project title">
+            </div>
+            <div class="field">
+                <label for="chapter-number-input">Chapter Number</label>
+                <input id="chapter-number-input" type="number" min="1" value="1" placeholder="1">
+            </div>
+            <div class="field">
+                <label for="chapter-title-input">Chapter Title</label>
+                <input id="chapter-title-input" placeholder="Chapter title">
+            </div>
+            <div class="field">
+                <label for="story-synopsis-input">Synopsis / Notes</label>
+                <textarea id="story-synopsis-input" placeholder="Writer can describe the story direction and artist can add visual notes."></textarea>
+            </div>
+            <div class="field">
+                <label for="story-content-input">Story Content / Publish Draft</label>
+                <textarea id="story-content-input" placeholder="Final story text to publish into reader space when both approve."></textarea>
+            </div>
+            <div class="field">
+                <label for="cover-image-input">Story Cover</label>
+                <input id="cover-image-input" type="file" accept="image/*">
+                <div id="cover-image-preview" style="display:none;margin-top:1rem;">
+                    <img id="cover-image-preview-img" src="" alt="Story cover preview" style="width:100%;max-width:220px;border-radius:0.75rem;border:1px solid rgba(63, 109, 113, 0.2);object-fit:cover;">
+                </div>
+                <p style="font-size:1.2rem;color:#5f6b6d;margin-top:0.8rem;">Artists can upload the cover shown on the reader page and in profile collaborations.</p>
+            </div>
+            <div class="panel-builder">
+                <div class="panel-builder-head">
+                    <div>
+                        <label for="panel-title-input">Chapter Panels</label>
+                        <p>Save each canvas state as a scroll panel for the reader episode.</p>
+                    </div>
+                    <button id="save-current-panel-btn" class="panel-save-btn" type="button">Save Current Panel</button>
+                </div>
+                <div class="field">
+                    <input id="panel-title-input" placeholder="Optional panel title">
+                </div>
+                <div id="project-panels-list" class="panel-list"></div>
+            </div>
+            <div class="project-actions">
+                <button id="save-project-btn" class="primary" type="button">Save Project</button>
+                <button id="publish-request-btn" class="secondary" type="button">Request Publish</button>
+                <a id="reader-preview-link" class="secondary" href="stories.html" style="display:none;">Open Published Story</a>
+            </div>
+            <div id="project-status" class="project-status">Shared notes sync through the collaboration record.</div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Drawing Tools -->
+            <div class="drawing-tools" id="drawing-tools">
+                <div class="toolbar-panel">
+                    <!-- Selection & Transform Tools -->
+                    <div class="tool-group">
+                        <button class="tool-btn active" data-tool="brush"><i class="fas fa-paint-brush"></i></button>
+                        <button class="tool-btn" data-tool="pencil"><i class="fas fa-pencil"></i></button>
+                        <button class="tool-btn" data-tool="eraser"><i class="fas fa-eraser"></i></button>
+                    </div>
+
+                    <!-- Drawing Tools -->
+                    <div class="tool-group">
+                        <button class="tool-btn" data-tool="selection"><i class="fas fa-arrow-pointer"></i></button>
+                        <button class="tool-btn" data-tool="wand"><i class="fas fa-magic"></i></button>
+                        <button class="tool-btn" data-tool="move"><i class="fas fa-arrows"></i></button>
+                        <button class="tool-btn" data-tool="transform"><i class="fas fa-expand"></i></button>
+                        <button class="tool-btn" data-tool="blur"><i class="fas fa-wind"></i></button>
+                        <button class="tool-btn" data-tool="smudge"><i class="fas fa-hand-paper"></i></button>
+                    </div>
+
+                    <!-- Shapes -->
+                    <div class="tool-group">
+                        <button class="tool-btn" data-tool="line"><i class="fas fa-slash"></i></button>
+                        <button class="tool-btn" data-tool="rectangle"><i class="far fa-square"></i></button>
+                        <button class="tool-btn" data-tool="circle"><i class="far fa-circle"></i></button>
+                        <button class="tool-btn" data-tool="polygon"><i class="fas fa-star"></i></button>
+                    </div>
+
+                    <!-- Fill & Color -->
+                    <div class="tool-group">
+                        <button class="tool-btn" data-tool="fill"><i class="fas fa-fill-drip"></i></button>
+                        <button class="tool-btn" data-tool="eyedropper"><i class="fas fa-eye-dropper"></i></button>
+                    </div>
+
+                    <!-- Text -->
+                    <div class="tool-group">
+                        <button class="tool-btn" data-tool="text"><i class="fas fa-font"></i></button>
+                    </div>
+
+                    <!-- Color & Properties -->
+                    <div class="tool-group">
+                        <input type="color" id="color-picker" value="#000000" title="Color">
+                    </div>
+
+                    <!-- Size & Opacity -->
+                    <div class="slider-stack">
+                        <label title="Brush Size">S <input type="range" id="size-slider" min="1" max="100" value="5"></label>
+                        <label title="Opacity">O <input type="range" id="opacity-slider" min="0.1" max="1" step="0.05" value="1"></label>
+                        <label title="Tolerance">T <input type="range" id="tolerance-slider" min="0" max="120" value="24"></label>
+                    </div>
+
+                    <!-- Layers -->
+                    <div class="tool-group">
+                        <button id="add-layer-btn" class="tool-btn" title="Add Layer"><i class="fas fa-layer-group"></i></button>
+                        <button id="delete-layer-btn" class="tool-btn" title="Delete Layer"><i class="fas fa-trash"></i></button>
+                        <select id="active-layer-select" title="Active Layer" style="height:24px;border:1px solid #d0d0d0;border-radius:8px;padding:0 4px;min-width:58px;background:#fff;"></select>
+                        <select id="blend-mode-select" title="Blend Mode" style="height:24px;border:1px solid #d0d0d0;border-radius:8px;padding:0 4px;min-width:58px;background:#fff;">
+                            <option value="source-over">Normal</option>
+                            <option value="multiply">Multiply</option>
+                            <option value="screen">Screen</option>
+                            <option value="overlay">Overlay</option>
+                        </select>
+                        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#244;" title="Alpha Lock"><input type="checkbox" id="alpha-lock-toggle">A</label>
+                        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#244;" title="Clip Mask"><input type="checkbox" id="clip-mask-toggle">C</label>
+                    </div>
+
+                    <!-- Edit Actions -->
+                    <div class="tool-group">
+                        <button id="undo-btn" class="tool-btn" title="Undo"><i class="fas fa-undo"></i></button>
+                        <button id="redo-btn" class="tool-btn" title="Redo"><i class="fas fa-redo"></i></button>
+                    </div>
+
+                    <!-- View & Layer -->
+                    <div class="tool-group">
+                        <button id="grid-btn" class="tool-btn" title="Grid"><i class="fas fa-border-all"></i></button>
+                        <button id="clear-btn" class="tool-btn" title="Clear Canvas"><i class="fas fa-trash"></i></button>
+                    </div>
+
+                    <!-- Export -->
+                    <div class="tool-group">
+                        <button id="save-btn" class="tool-btn" title="Download"><i class="fas fa-download"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <div class="canvas-grid" id="canvas-grid"></div>
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Panel: Chat Box -->
+        <button id="chat-toggle" class="chat-toggle" type="button" title="Toggle chat">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="chat-container" id="chat-container">
+            <div class="chat-header">
+                <span>Chat</span>
+                <button class="minimize-btn" id="chat-minimize"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <div id="writer-ai-cue" class="writer-ai-cue">
+                <div class="writer-ai-cue-head">
+                    <span class="writer-ai-cue-title">Writer Scene Cue Assistant</span>
+                    <button id="writer-ai-cue-generate" class="writer-ai-cue-btn" type="button">Suggest Scene Cue</button>
+                </div>
+                <div id="writer-ai-cue-list" class="writer-ai-cue-list"></div>
+            </div>
+            <div class="chat-input">
+                <div class="chat-input-toolbar">
+                    <button id="attach-toggle" class="chat-action-btn" type="button" title="Attach file" aria-label="Attach file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input id="chat-attachment-input" type="file" hidden>
+                    <button id="emoji-toggle" class="chat-action-btn" type="button" title="Emoji keyboard" aria-label="Emoji keyboard">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <button id="char-toggle" class="chat-action-btn" type="button" title="Special characters" aria-label="Special characters">
+                        <i class="fas fa-font"></i>
+                    </button>
+                    <button id="send-message" class="chat-send-btn" type="button" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <textarea id="message-input" rows="3" maxlength="800" placeholder="Type a message... (Shift+Enter for new line)"></textarea>
+                <div id="emoji-panel" class="emoji-panel" hidden>
+                    <div class="emoji-tabs">
+                        <button class="emoji-tab" type="button" data-set="recent">Recent</button>
+                        <button class="emoji-tab active" type="button" data-set="emoji">Smileys</button>
+                        <button class="emoji-tab" type="button" data-set="people">People</button>
+                        <button class="emoji-tab" type="button" data-set="animals">Animals</button>
+                        <button class="emoji-tab" type="button" data-set="food">Food</button>
+                        <button class="emoji-tab" type="button" data-set="travel">Travel</button>
+                        <button class="emoji-tab" type="button" data-set="activities">Activities</button>
+                        <button class="emoji-tab" type="button" data-set="objects">Objects</button>
+                        <button class="emoji-tab" type="button" data-set="symbol">Symbols</button>
+                    </div>
+                    <div class="emoji-panel-meta">
+                        <span id="emoji-set-label" class="emoji-set-label">Smileys</span>
+                        <button id="emoji-scroll-top" class="emoji-top-btn" type="button">Top</button>
+                    </div>
+                    <div id="emoji-grid" class="emoji-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="/js/collab.js"></script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms. Wonka - PixelScript</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        /* Include all styles from writer-template.html */
+        .writer-profile { max-width: 800px; margin: 2rem auto; padding: 2rem; background: var(--white); border-radius: 1rem; box-shadow: var(--box-shadow); }
+        .writer-header { display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; }
+        .writer-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--main-color);
+        }
+
+        .writer-info h1 { font-size: 2.4rem; color: var(--black); margin-bottom: 1rem; }
+        .writer-info p { font-size: 1.6rem; color: var(--light-color); }
+        .writer-tags { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+        .tag { padding: 0.5rem 1.5rem; background: var(--bg); color: var(--main-color); border-radius: 2rem; font-size: 1.4rem; }
+        .writer-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 2rem; text-align: center; padding: 1rem; background: var(--bg); border-radius: 0.5rem; }
+        .stat-item h3 { font-size: 2rem; color: var(--main-color); }
+        .stat-item p { font-size: 1.4rem; color: var(--light-color); }
+        .writer-bio { margin-bottom: 2rem; }
+        .writer-bio h2 { font-size: 2rem; color: var(--black); margin-bottom: 1rem; }
+        .writer-bio p { font-size: 1.6rem; color: var(--light-color); line-height: 1.6; }
+        .writer-works { margin-bottom: 2rem; }
+        .writer-works h2 { font-size: 2rem; color: var(--black); margin-bottom: 1rem; }
+        .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem; }
+        .work-item { background: var(--white); border-radius: 0.5rem; overflow: hidden; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); transition: transform 0.3s ease; }
+        .work-item:hover { transform: translateY(-5px); }
+        .work-image { width: 100%; height: 150px; object-fit: cover; }
+        .work-info { padding: 1rem; }
+        .work-info h3 { font-size: 1.6rem; color: var(--black); margin-bottom: 0.5rem; }
+        .work-info p { font-size: 1.4rem; color: var(--black); }
+
+        /* Updated collab button styles with teal color */
+        .collab-button {
+            display: block;
+            width: 100%;
+            padding: 1.5rem;
+            background: #008080;
+            color: var(--white);
+            font-size: 1.8rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .collab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: #006666;
+        }
+
+        .collab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .collab-button:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <a href="../home.html" class="logo">
+            <img src="../images/logo.png" alt="pixel script logo">
+            
+        </a>
+    </header>
+
+    <!-- Writer Profile Section -->
+    <section class="writer-profile">
+        <div class="writer-header">
+            <img src="../images/anastasia.jpeg" alt="Ms. Wonka" class="writer-avatar">
+            <div class="writer-info">
+                <h1>Anastasia</h1>
+                <p>Weaving whimsical tales of wonder and imagination</p>
+                <div class="writer-tags">
+                    <span class="tag">Fantasy</span>
+                    <span class="tag">Action</span>
+                    <span class="tag">Adventure</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="writer-stats">
+            <div class="stat-item">
+                <h3>12</h3>
+                <p>Stories Written</p>
+            </div>
+            <div class="stat-item">
+                <h3>5</h3>
+                <p>Collaborations</p>
+            </div>
+            <div class="stat-item">
+                <h3>4.8</h3>
+                <p>Rating</p>
+            </div>
+        </div>
+
+        <div class="writer-bio">
+            <h2>About Me</h2>
+            <p>A passionate storyteller with a knack for creating enchanting worlds filled with magic and wonder. My stories aim to inspire young minds and bring joy to readers of all ages. With a background in children's literature and a love for fantasy, I craft tales that combine imagination with valuable life lessons.</p>
+        </div>
+
+        <div class="writer-works">
+            <h2>Featured Works</h2>
+            <div class="works-grid">
+                <div class="work-item">
+                    <img src="../images/the kingdom.jpeg" alt="The Kingdom" class="work-image">
+                    <div class="work-info">
+                        <h3>The Kingdom</h3>
+                        <p>A war for the throne,who will win?</p>
+                    </div>
+                </div>
+                <div class="work-item">
+                    <img src="../images/dream factory.jpeg" alt="The Dream Factory" class="work-image">
+                    <div class="work-info">
+                        <h3>The Dream Factory</h3>
+                        <p>Where children's dreams come to life</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="collab-button" onclick="alert('Collaboration request sent to Anastasia!')">Send Collaboration Request</button>
+    </section>
+</body>
+</html>

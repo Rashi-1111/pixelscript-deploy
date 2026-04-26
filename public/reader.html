@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reader - PixelScript</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .reader-container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .story-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .story-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .story-meta {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .chapter-list {
+            margin-bottom: 3rem;
+        }
+
+        .chapter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            padding: 1.25rem;
+            margin-bottom: 1.1rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .chapter-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+        }
+
+        .chapter-item.is-clickable {
+            cursor: pointer;
+        }
+
+        .chapter-preview {
+            width: 148px;
+            height: 148px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: #eef3f4;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+            margin-right: 1.4rem;
+        }
+
+        .chapter-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .chapter-main {
+            display: flex;
+            align-items: flex-start;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-info {
+            padding-top: 0.2rem;
+        }
+
+        .chapter-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .chapter-meta-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .chapter-summary {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-width: 42rem;
+        }
+
+        .chapter-open {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-left: 1rem;
+        }
+
+        .chapter-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-color);
+        }
+
+        .chapter-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-free {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-locked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-purchased {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .chapter-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-read, .btn-purchase {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-read {
+            background: var(--main-color);
+            color: white;
+        }
+
+        .btn-read:hover {
+            background: #2c5457;
+        }
+
+        .btn-purchase {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-purchase:hover {
+            background: #218838;
+        }
+
+        .chapter-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            background: var(--main-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #2c5457;
+        }
+
+        .purchase-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .purchase-modal.show {
+            display: flex;
+        }
+
+        .purchase-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .purchase-content h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .purchase-details {
+            margin-bottom: 2rem;
+        }
+
+        .purchase-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--main-color);
+        }
+
+        </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Back to Stories
+    </button>
+
+    <div class="reader-container">
+        <div id="story-view" style="display: none;">
+            <div class="story-header">
+                <h1 class="story-title" id="story-title"></h1>
+                <div class="story-meta">
+                    <span id="story-author"></span> •
+                    <span id="story-genre"></span> •
+                    <span id="story-date"></span>
+                </div>
+            </div>
+
+            <div id="chapter-content" class="chapter-content" style="display: none;">
+                <h2 id="chapter-title"></h2>
+                <div id="chapter-text"></div>
+            </div>
+        </div>
+
+        <div id="chapter-list">
+            <h2>Chapters</h2>
+            <div id="chapters-container"></div>
+
+        </div>
+
+    <!-- Purchase Modal -->
+    <div id="purchase-modal" class="purchase-modal">
+        <div class="purchase-content">
+            <h3>Unlock Chapter</h3>
+            <div class="purchase-details">
+                <p><strong>Chapter:</strong> <span id="purchase-chapter-title"></span></p>
+                <p><strong>Price:</strong> <span id="purchase-price" class="purchase-price"></span></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="closePurchaseModal()">Cancel</button>
+                <button class="btn-purchase" onclick="confirmPurchase()">Purchase</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        const CHAPTER_UNLOCK_PRICE_INR = 1;
+        let currentStory = null;
+        let currentChapter = null;
+        let currentUser = null;
+
+        // Check authentication
+        async function ensureAuthenticated() {
+            const response = await fetch('/api/users/me');
+            if (!response.ok) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function loadCurrentUser() {
+            if (currentUser) {
+                return currentUser;
+            }
+
+            try {
+                const response = await fetch('/api/users/me');
+
+                if (!response.ok) {
+                    return null;
+                }
+
+                currentUser = await response.json();
+                return currentUser;
+            } catch (error) {
+                console.error('Failed to load current user:', error);
+                return null;
+            }
+        }
+
+        // Get story ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('id');
+
+        if (!storyId) {
+            window.location.href = 'stories.html';
+        }
+
+        // Load story data
+        async function loadStory() {
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) {
+                    return;
+                }
+
+                let response = await fetch(`/api/stories/${storyId}`);
+
+                if (!response.ok) {
+                    response = await fetch(`/api/stories/public/${storyId}`);
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to load story');
+                }
+
+                const story = await response.json();
+                currentStory = story;
+                displayStory(story);
+            } catch (error) {
+                console.error('Error loading story:', error);
+                alert('Failed to load story');
+            }
+        }
+
+        // Display story information
+        function displayStory(story) {
+            document.getElementById('story-title').textContent = story.title;
+            document.getElementById('story-author').textContent = story.createdBy || story.author.name;
+            document.getElementById('story-genre').textContent = story.genre;
+            document.getElementById('story-date').textContent = new Date(story.createdAt).toLocaleDateString();
+
+            document.getElementById('story-view').style.display = 'block';
+
+            // Display chapters
+            const chaptersContainer = document.getElementById('chapters-container');
+            chaptersContainer.innerHTML = '';
+
+            story.chapters.forEach(chapter => {
+                const chapterElement = createChapterElement(chapter);
+                chaptersContainer.appendChild(chapterElement);
+            });
+        }
+
+        // Create chapter element
+        function createChapterElement(chapter) {
+            const div = document.createElement('div');
+            div.className = 'chapter-item';
+            const previewImage = chapter?.panels?.[0]?.imageUrl
+                || currentStory?.projectBoard?.panels?.[0]?.imageUrl
+                || currentStory?.projectBoard?.canvasPreview
+                || currentStory?.projectBoard?.artwork?.[0]?.url
+                || currentStory?.coverImage
+                || 'images/work1.jpeg';
+            const publishDate = new Date(currentStory?.createdAt || Date.now()).toLocaleDateString();
+            const summary = currentStory?.projectBoard?.synopsis || currentStory?.description || 'Open this episode to read the story panel in full screen.';
+
+            let statusClass = 'status-locked';
+            let statusText = 'Locked';
+            let actionButton = '';
+            let actionType = '';
+
+            if (chapter.hasAccess) {
+                const isPurchased = !chapter.isFree && !currentStory.isAuthor;
+                statusClass = chapter.isFree ? 'status-free' : 'status-purchased';
+                statusText = chapter.isFree ? 'Free' : (isPurchased ? 'Unlocked' : 'Available');
+                actionType = 'read';
+                div.classList.add('is-clickable');
+            } else {
+                actionType = 'purchase';
+                actionButton = `<button class="btn-purchase" data-action="purchase" data-chapter-id="${chapter._id}" data-chapter-title="${encodeURIComponent(chapter.title)}">Unlock</button>`;
+            }
+
+            div.dataset.action = actionType;
+            div.dataset.chapterId = chapter._id;
+            div.dataset.chapterTitle = encodeURIComponent(chapter.title);
+
+            div.innerHTML = `
+                <div class="chapter-main">
+                    <div class="chapter-preview">
+                        <img src="${previewImage}" alt="${chapter.title}">
+                    </div>
+                    <div class="chapter-info">
+                        <h3>Chapter ${chapter.order}: ${chapter.title}</h3>
+                        <div class="chapter-meta-line">${publishDate}</div>
+                        <p class="chapter-summary">${summary}</p>
+                        <span class="chapter-status ${statusClass}">${statusText}</span>
+                    </div>
+                </div>
+                <div class="chapter-actions">
+                    ${actionButton || '<span class="chapter-open"><i class="fas fa-chevron-right"></i></span>'}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Read chapter
+        function readChapter(chapterId) {
+            const chapter = (currentStory?.chapters || []).find(c => String(c._id) === String(chapterId));
+            if (!chapter || !chapter.hasAccess) {
+                return;
+            }
+            window.location.href = `chapter-view.html?story=${storyId}&chapter=${chapter._id}`;
+        }
+
+        // Show purchase modal
+        function showPurchaseModal(chapterId, chapterTitle, price = CHAPTER_UNLOCK_PRICE_INR) {
+            document.getElementById('purchase-chapter-title').textContent = chapterTitle;
+            document.getElementById('purchase-price').textContent = `₹${Number(price || 0).toFixed(2)}`;
+            document.getElementById('purchase-modal').dataset.chapterId = chapterId;
+            document.getElementById('purchase-modal').classList.add('show');
+        }
+
+        // Close purchase modal
+        function closePurchaseModal() {
+            document.getElementById('purchase-modal').classList.remove('show');
+        }
+
+        // Confirm purchase
+        async function confirmPurchase() {
+            try {
+                const isAuthenticated = await ensureAuthenticated();
+                if (!isAuthenticated) return;
+
+                const chapterId = document.getElementById('purchase-modal').dataset.chapterId;
+
+                const orderResponse = await fetch('/api/purchases/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        storyId: storyId,
+                        chapterId: chapterId,
+                        purchaseType: 'chapter'
+                    })
+                });
+
+                const orderData = await orderResponse.json();
+                if (!orderResponse.ok) {
+                    alert(orderData.error || 'Failed to create payment order');
+                    return;
+                }
+
+                const user = await loadCurrentUser();
+                const chapter = (currentStory?.chapters || []).find(item => String(item._id) === String(chapterId));
+
+                const options = {
+                    key: orderData.keyId,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'PixelScript',
+                    description: `Unlock chapter: ${chapter?.title || 'Chapter'}`,
+                    order_id: orderData.orderId,
+                    prefill: {
+                        name: user?.name || '',
+                        email: user?.email || ''
+                    },
+                    theme: {
+                        color: '#3f6d71'
+                    },
+                    handler: async function(response) {
+                        const verifyResponse = await fetch('/api/purchases/verify-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                storyId,
+                                chapterId,
+                                purchaseType: 'chapter'
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+                        if (!verifyResponse.ok || !verifyData.success) {
+                            alert(verifyData.error || 'Payment verification failed');
+                            return;
+                        }
+
+                        alert('Payment successful. Chapter unlocked.');
+                        closePurchaseModal();
+                        loadStory();
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            console.log('Razorpay checkout closed');
+                        }
+                    }
+                };
+
+                const razorpay = new Razorpay(options);
+                razorpay.on('payment.failed', function(response) {
+                    alert(response.error.description || 'Payment failed');
+                });
+                razorpay.open();
+            } catch (error) {
+                console.error('Purchase error:', error);
+                alert('Purchase failed');
+            }
+        }
+
+        // Go back to chapter list
+        function goBack() {
+            if (document.getElementById('chapter-content').style.display === 'block') {
+                document.getElementById('chapter-content').style.display = 'none';
+                document.getElementById('chapter-list').style.display = 'block';
+            } else {
+                window.location.href = 'stories.html';
+            }
+        }
+
+        document.getElementById('chapters-container').addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action]');
+            const card = event.target.closest('.chapter-item[data-action]');
+
+            if (!button && !card) {
+                return;
+            }
+
+            const source = button || card;
+            const action = source.dataset.action;
+            const chapterId = source.dataset.chapterId;
+
+            if (action === 'read') {
+                readChapter(chapterId);
+                return;
+            }
+
+            if (action === 'purchase') {
+                showPurchaseModal(
+                    chapterId,
+                    decodeURIComponent(source.dataset.chapterTitle || ''),
+                    CHAPTER_UNLOCK_PRICE_INR
+                );
+            }
+        });
+        // Initialize
+        loadStory();
+    </script>
+</body>
+</html>

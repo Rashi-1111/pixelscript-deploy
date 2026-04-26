@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelScript — Find Your Creative Partner</title>
+    <meta name="description"
+        content="Use AI-powered KNN matching to find your perfect creative writing or art partner on PixelScript.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --accent: #3f6d71;
+            --accent2: #2c5457;
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #e8ecf0;
+            --text: #1a1d23;
+            --muted: #6b7280;
+            --tag-bg: #e8f2f2;
+            --tag-text: #2c6b6f;
+            --radius: 16px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOP NAV ── */
+        .topnav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .topnav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .topnav-logo img {
+            height: 32px;
+            width: auto;
+        }
+
+        .topnav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .topnav-back:hover {
+            color: var(--accent);
+        }
+
+        /* ── PAGE WRAPPER ── */
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* ── HERO HEADING ── */
+        .hero {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 460px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 130px;
+            flex: 1;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+        }
+
+        .filter-group select {
+            appearance: none;
+            background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 10px center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.55rem 2rem 0.55rem 0.75rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-find {
+            padding: 0.65rem 1.75rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(63, 109, 113, 0.3);
+        }
+
+        .btn-find:hover:not(:disabled) {
+            background: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(63, 109, 113, 0.4);
+        }
+
+        .btn-find:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ── RESULTS HEADER ── */
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .results-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .results-count {
+            font-size: 0.82rem;
+            color: var(--muted);
+            background: var(--border);
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+        }
+
+        /* ── PARTNER GRID ── */
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+
+        /* ── PARTNER CARD ── */
+        .partner-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+            position: relative;
+        }
+
+        .partner-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #c8dfe0;
+        }
+
+        /* Match badge — top right corner */
+        .match-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.28rem 0.65rem;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+
+        .match-great {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        .match-good {
+            background: #d97706;
+            color: #fff;
+        }
+
+        .match-low {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        /* Avatar area */
+        .card-avatar-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 1.75rem 1.5rem 0.75rem;
+        }
+
+        .card-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3.5px solid var(--accent);
+            box-shadow: 0 0 0 5px rgba(63, 109, 113, 0.1);
+            image-rendering: high-quality;
+            display: block;
+        }
+
+        /* Card body */
+        .card-body {
+            padding: 0 1.5rem 1.25rem;
+            text-align: center;
+        }
+
+        .card-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+
+        .card-role {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.22rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 0.65rem;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 0.65rem;
+        }
+
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.18rem 0.55rem;
+            border-radius: 999px;
+        }
+
+        .meta-pill i {
+            font-size: 0.65rem;
+        }
+
+        .card-bio {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .genre-pill {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--tag-text);
+            background: var(--tag-bg);
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        /* Card footer */
+        .card-footer {
+            border-top: 1px solid var(--border);
+            padding: 0.9rem 1.5rem;
+        }
+
+        .btn-request {
+            width: 100%;
+            padding: 0.65rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+        }
+
+        .btn-request:hover:not(:disabled) {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+
+        .btn-request:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .btn-request.sent {
+            background: #16a34a;
+        }
+
+        /* ── EMPTY / LOADING STATES ── */
+        .state-box {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--muted);
+        }
+
+        .state-box .state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+
+        .state-box p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* ── PROFILE MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(10, 12, 18, 0.55);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .profile-modal {
+            background: var(--surface);
+            border-radius: 24px;
+            width: min(580px, 100%);
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.25s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+            position: relative;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .modal-hero {
+            background: linear-gradient(135deg, #3f6d71 0%, #2c5457 100%);
+            padding: 2.5rem 2rem 1.5rem;
+            text-align: center;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .modal-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            margin-bottom: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            image-rendering: high-quality;
+        }
+
+        .modal-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.3rem;
+        }
+
+        .modal-role-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: 1.75rem 2rem;
+        }
+
+        .modal-match-bar {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .match-pct-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .match-info p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .match-bar-track {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .match-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #3f6d71, #5ba0a5);
+            transition: width 0.6s ease;
+        }
+
+        .modal-section {
+            margin-bottom: 1.4rem;
+        }
+
+        .modal-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-bio {
+            font-size: 0.92rem;
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        .modal-meta-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .modal-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.82rem;
+            color: var(--text);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        .modal-meta-chip i {
+            color: var(--accent);
+            font-size: 0.75rem;
+        }
+
+        .modal-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .modal-genre-pill {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--tag-text);
+            background: var(--tag-bg);
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        .modal-footer {
+            padding: 0 2rem 2rem;
+        }
+
+        .btn-modal-request {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 14px rgba(63, 109, 113, 0.35);
+        }
+
+        .btn-modal-request:hover:not(:disabled) {
+            background: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(63, 109, 113, 0.45);
+        }
+
+        .btn-modal-request.sent {
+            background: #16a34a;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-modal-request:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                min-width: unset;
+            }
+
+            .btn-find {
+                width: 100%;
+            }
+
+            .modal-hero {
+                padding: 1.75rem 1.25rem 1.25rem;
+            }
+
+            .modal-body,
+            .modal-footer {
+                padding-left: 1.25rem;
+                padding-right: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Nav -->
+    <nav class="topnav">
+        <a href="stories.html" class="topnav-back"><i class="fas fa-arrow-left"></i> Back</a>
+        <a href="index.html" class="topnav-logo">
+            <img src="images/logo.png" alt="PixelScript"> PixelScript
+        </a>
+        <a href="profile.html" class="topnav-back"><i class="fas fa-user"></i> Profile</a>
+    </nav>
+
+    <div class="page">
+
+        <!-- Hero -->
+        <div class="hero">
+            <h1>Find Your Creative Partner</h1>
+            <p>ML based matching connects you with the right writer or artist based on your style, genre, and
+                experience.</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Looking for</label>
+                <select id="partner-role">
+                    <option value="writer">Writer</option>
+                    <option value="artist">Artist</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Genre</label>
+                <select id="genre">
+                    <option value="">Any</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="scifi">Sci-Fi</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="romance">Romance</option>
+                    <option value="horror">Horror</option>
+                    <option value="thriller">Thriller</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="drama">Drama</option>
+                    <option value="historical">Historical</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Country</label>
+                <select id="country">
+                    <option value="">Any</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Bangladesh">Bangladesh</option>
+                    <option value="Brazil">Brazil</option>
+                    <option value="Canada">Canada</option>
+                    <option value="China">China</option>
+                    <option value="France">France</option>
+                    <option value="Germany">Germany</option>
+                    <option value="India">India</option>
+                    <option value="Indonesia">Indonesia</option>
+                    <option value="Italy">Italy</option>
+                    <option value="Japan">Japan</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Mexico">Mexico</option>
+                    <option value="Nepal">Nepal</option>
+                    <option value="Netherlands">Netherlands</option>
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Pakistan">Pakistan</option>
+                    <option value="Philippines">Philippines</option>
+                    <option value="Russia">Russia</option>
+                    <option value="Saudi Arabia">Saudi Arabia</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="South Korea">South Korea</option>
+                    <option value="Spain">Spain</option>
+                    <option value="Sri Lanka">Sri Lanka</option>
+                    <option value="Sweden">Sweden</option>
+                    <option value="Thailand">Thailand</option>
+                    <option value="Turkey">Turkey</option>
+                    <option value="UAE">UAE</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="USA">United States</option>
+                    <option value="Vietnam">Vietnam</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Age Group</label>
+                <select id="age-group">
+                    <option value="">Any</option>
+                    <option value="18-24">18–24</option>
+                    <option value="25-34">25–34</option>
+                    <option value="35-44">35–44</option>
+                    <option value="45+">45+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Experience</label>
+                <select id="experience">
+                    <option value="">Any</option>
+                    <option value="0-1">0–1 yrs</option>
+                    <option value="1-5">1–5 yrs</option>
+                    <option value="5-10">5–10 yrs</option>
+                    <option value="10+">10+ yrs</option>
+                </select>
+            </div>
+            <button id="findMatchesBtn" class="btn-find">
+                <i class="fas fa-bolt"></i> Find Matches
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div class="results-header">
+            <h2>Available Partners</h2>
+            <span class="results-count" id="results-count">—</span>
+        </div>
+        <div class="partners-grid" id="partnersGrid">
+            <div class="state-box">
+                <div class="state-icon"><i class="fas fa-users"></i></div>
+                <p>Loading your matches…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal" onclick="closeModal(event)">
+        <div class="profile-modal" id="profileModalInner">
+            <button class="modal-close" onclick="closeProfileModal()"><i class="fas fa-times"></i></button>
+
+            <div class="modal-hero">
+                <img class="modal-avatar" id="modal-avatar" src="" alt="">
+                <div class="modal-name" id="modal-name"></div>
+                <span class="modal-role-badge" id="modal-role"></span>
+            </div>
+
+            <div class="modal-body">
+                <!-- Match bar -->
+                <div class="modal-match-bar" id="modal-match-bar">
+                    <div>
+                        <div class="match-pct-num" id="modal-match-pct">—</div>
+                        <div class="match-info">
+                            <p>Match Score</p>
+                        </div>
+                    </div>
+                    <div class="match-bar-track">
+                        <div class="match-bar-fill" id="modal-match-fill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div class="modal-section" id="modal-bio-section">
+                    <div class="modal-section-label">About</div>
+                    <div class="modal-bio" id="modal-bio"></div>
+                </div>
+
+                <!-- Details -->
+                <div class="modal-section">
+                    <div class="modal-section-label">Details</div>
+                    <div class="modal-meta-row" id="modal-meta-row"></div>
+                </div>
+
+                <!-- Genres -->
+                <div class="modal-section" id="modal-genres-section">
+                    <div class="modal-section-label">Genres</div>
+                    <div class="modal-genres" id="modal-genres"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-modal-request" id="modal-collab-btn" onclick="sendModalCollabRequest()">
+                    <i class="fas fa-handshake"></i> Request Collaboration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/matching.js"></script>
+</body>
+
+</html>

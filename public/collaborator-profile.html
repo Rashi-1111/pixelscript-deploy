@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborator Profile - PixelScript</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        :root {
+            --main-color: #3f6d71;
+            --bg-color: #9fc3d2;
+            --panel: #ffffff;
+            --text: #274f63;
+            --muted: #5a707e;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            font-family: Arial, sans-serif;
+            color: var(--text);
+        }
+
+        .header {
+            background: var(--main-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header .logo img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            border-radius: 3px;
+            background: #fff;
+            padding: 2px;
+        }
+
+        .writer-profile {
+            max-width: 920px;
+            margin: 1.8rem auto;
+            background: var(--panel);
+            border-radius: 0.8rem;
+            box-shadow: 0 0.8rem 1.8rem rgba(0, 0, 0, 0.08);
+            padding: 1.25rem;
+        }
+
+        .writer-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .writer-avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--main-color);
+        }
+
+        .writer-info h1 {
+            margin: 0;
+            font-size: 2.4rem;
+            color: var(--text);
+        }
+
+        .writer-info p {
+            margin: 0.8rem 0;
+            font-size: 1.6rem;
+            color: var(--muted);
+        }
+
+        .writer-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .tag {
+            padding: 0.55rem 1.1rem;
+            border-radius: 999px;
+            background: #b8d8e5;
+            color: #3f6577;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .writer-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            background: #aad0e0;
+            border-radius: 0.6rem;
+            margin-bottom: 1.6rem;
+            padding: 1.2rem;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            margin: 0;
+            font-size: 3rem;
+            color: #2f5f68;
+        }
+
+        .stat-item p {
+            margin: 0.4rem 0 0;
+            font-size: 1.2rem;
+            color: #4f6f75;
+        }
+
+        .writer-bio,
+        .writer-works,
+        .uploaded-works,
+        .request-panel {
+            margin-bottom: 1.6rem;
+        }
+
+        .writer-bio h2,
+        .writer-works h2,
+        .uploaded-works h2,
+        .request-panel h2 {
+            margin: 0 0 0.8rem;
+            font-size: 2rem;
+            color: var(--text);
+        }
+
+        .writer-bio p {
+            margin: 0;
+            font-size: 1.6rem;
+            line-height: 1.7;
+            color: #4a5e66;
+        }
+
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .work-item {
+            border-radius: 0.6rem;
+            background: #ffffff;
+            overflow: hidden;
+            box-shadow: 0 0.35rem 0.9rem rgba(0, 0, 0, 0.12);
+        }
+
+        .work-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+            background: #d8e9ef;
+        }
+
+        .work-info {
+            padding: 0.9rem;
+        }
+
+        .work-info h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        .work-info p {
+            margin: 0.5rem 0 0;
+            font-size: 1.25rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .open-work-btn {
+            margin-top: 0.7rem;
+            border: none;
+            border-radius: 0.4rem;
+            padding: 0.55rem 0.9rem;
+            background: #e9f3f8;
+            color: #2f5f68;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .collab-button {
+            display: block;
+            width: 100%;
+            padding: 1.2rem;
+            background: #0f8a8a;
+            color: #fff;
+            font-size: 1.8rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .collab-button:hover {
+            background: #0b7777;
+            transform: translateY(-1px);
+        }
+
+        .request-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+        }
+
+        .request-form label {
+            font-size: 1.3rem;
+            color: #355a6a;
+            font-weight: 700;
+        }
+
+        .request-form input,
+        .request-form select,
+        .request-form textarea {
+            width: 100%;
+            border: 1px solid #c8dbe5;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 1.35rem;
+            box-sizing: border-box;
+            color: #294f5a;
+        }
+
+        .request-form textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .send-btn {
+            border: none;
+            border-radius: 0.5rem;
+            background: #2a7683;
+            color: #fff;
+            padding: 0.85rem 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.4rem;
+        }
+
+        .status-text {
+            margin: 0.5rem 0 0;
+            font-size: 1.3rem;
+            color: #55717b;
+            min-height: 1.6rem;
+        }
+
+        .request-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 49, 54, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 180;
+            padding: 1rem;
+        }
+
+        .request-modal.show {
+            display: flex;
+        }
+
+        .request-modal-card {
+            width: min(680px, 96vw);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 0.7rem;
+            box-shadow: 0 0.9rem 1.9rem rgba(0, 0, 0, 0.24);
+            padding: 1rem;
+            position: relative;
+        }
+
+        .request-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.9rem;
+        }
+
+        .request-modal-head h3 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #2b5361;
+        }
+
+        .close-modal-btn {
+            border: none;
+            background: transparent;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #4f6e7a;
+        }
+
+        .work-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 44, 48, 0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        .work-modal-card {
+            width: min(960px, 96vw);
+            max-height: 92vh;
+            border-radius: 0.7rem;
+            overflow: hidden;
+            background: #fff;
+            position: relative;
+        }
+
+        .work-modal-close {
+            position: absolute;
+            top: 0.7rem;
+            right: 0.9rem;
+            border: none;
+            background: transparent;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .work-modal-media {
+            width: 100%;
+            height: min(84vh, 760px);
+            border: none;
+            object-fit: contain;
+            display: block;
+            background: #f1f8fb;
+        }
+
+        @media (max-width: 760px) {
+            .writer-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .writer-avatar {
+                width: 120px;
+                height: 120px;
+            }
+
+            .writer-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="home.html" class="logo"><img src="images/logo.png" alt="PixelScript logo"></a>
+        <a href="home.html"><i class="fas fa-arrow-left"></i> Back</a>
+    </header>
+
+    <section class="writer-profile">
+        <div class="writer-header">
+            <img id="profileAvatar" src="images/user-1.png" alt="Profile" class="writer-avatar">
+            <div class="writer-info">
+                <h1 id="profileName">Loading...</h1>
+                <p id="profileBio">Loading profile details...</p>
+                <div id="profileTags" class="writer-tags"></div>
+            </div>
+        </div>
+
+        <div class="writer-stats">
+            <div class="stat-item">
+                <h3 id="collabsCount">0</h3>
+                <p>Total Collaborations</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="featuredCount">0</h3>
+                <p>Featured Works</p>
+            </div>
+        </div>
+
+        <div class="writer-bio">
+            <h2>About Me</h2>
+            <p id="aboutText">No bio shared yet.</p>
+        </div>
+
+        <div class="writer-works">
+            <h2>Featured Works</h2>
+            <div id="featuredWorksGrid" class="works-grid"></div>
+        </div>
+
+        <div class="uploaded-works">
+            <h2>Uploaded Works</h2>
+            <div id="uploadedWorksGrid" class="works-grid"></div>
+        </div>
+
+        <div class="request-panel">
+            <button id="openRequestModalBtn" class="collab-button" type="button">Send Collaboration Request</button>
+            <p id="statusText" class="status-text"></p>
+        </div>
+    </section>
+
+    <div id="requestModal" class="request-modal">
+        <div class="request-modal-card">
+            <div class="request-modal-head">
+                <h3>Send Collaboration Request</h3>
+                <button id="closeRequestModalBtn" class="close-modal-btn" type="button">&times;</button>
+            </div>
+            <form id="requestForm" class="request-form">
+                <div>
+                    <label for="storyTitle">Story title</label>
+                    <input id="storyTitle" required>
+                </div>
+                <div>
+                    <label for="chapterNumber">Chapter number</label>
+                    <input id="chapterNumber" type="number" min="1" value="1" required>
+                </div>
+                <div>
+                    <label for="genre">Genre</label>
+                    <select id="genre" required>
+                        <option value="fantasy">Fantasy</option>
+                        <option value="sci-fi">Sci-Fi</option>
+                        <option value="romance">Romance</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="horror">Horror</option>
+                        <option value="adventure">Adventure</option>
+                        <option value="drama">Drama</option>
+                        <option value="comedy">Comedy</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="category">Format</label>
+                    <select id="category" required>
+                        <option value="comic">Comic</option>
+                        <option value="illustration">Illustration</option>
+                        <option value="book">Book</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="synopsis">Story idea / note</label>
+                    <textarea id="synopsis" required></textarea>
+                </div>
+                <button class="send-btn" type="submit">Send Request</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+
+        function resolveEntityId(value) {
+            if (!value) {
+                return '';
+            }
+
+            if (typeof value === 'string' || typeof value === 'number') {
+                return String(value).trim();
+            }
+
+            if (typeof value === 'object') {
+                if (typeof value._id === 'string' || typeof value._id === 'number') {
+                    return String(value._id).trim();
+                }
+                if (typeof value.id === 'string' || typeof value.id === 'number') {
+                    return String(value.id).trim();
+                }
+                if (typeof value.$oid === 'string') {
+                    return value.$oid.trim();
+                }
+                if (value._id && typeof value._id.$oid === 'string') {
+                    return value._id.$oid.trim();
+                }
+                if (typeof value.toString === 'function') {
+                    const text = value.toString();
+                    if (text && text !== '[object Object]') {
+                        return String(text).trim();
+                    }
+                }
+            }
+
+            return '';
+        }
+
+        function normalizeText(value) {
+            return String(value || '').trim();
+        }
+
+        function normalizeGenres(value) {
+            if (Array.isArray(value)) {
+                return value.map(item => normalizeText(item)).filter(Boolean);
+            }
+
+            const text = normalizeText(value);
+            if (!text) {
+                return [];
+            }
+
+            if (text.startsWith('[') && text.endsWith(']')) {
+                try {
+                    const parsed = JSON.parse(text);
+                    if (Array.isArray(parsed)) {
+                        return parsed.map(item => normalizeText(item)).filter(Boolean);
+                    }
+                } catch (_error) {
+                    // fall through to comma split
+                }
+            }
+
+            return text
+                .split(',')
+                .map(item => normalizeText(item))
+                .filter(Boolean);
+        }
+
+        const userId = resolveEntityId(params.get('userId') || params.get('id'));
+        const prefillName = String(params.get('name') || '').trim();
+        const prefillAvatar = String(params.get('avatar') || '').trim();
+        const prefillRole = String(params.get('role') || '').trim();
+        let viewedProfile = null;
+        let currentUser = null;
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeImage(url, fallback) {
+            const value = String(url || '').trim();
+            return value || fallback;
+        }
+
+        function setStatus(message) {
+            const el = document.getElementById('statusText');
+            if (el) {
+                el.textContent = message || '';
+            }
+        }
+
+        function prefillHeaderFromQuery() {
+            if (prefillName) {
+                document.getElementById('profileName').textContent = prefillName;
+            }
+            if (prefillAvatar) {
+                document.getElementById('profileAvatar').src = normalizeImage(prefillAvatar, 'images/user-1.png');
+            }
+            if (prefillRole) {
+                const tagsContainer = document.getElementById('profileTags');
+                if (tagsContainer && !tagsContainer.children.length) {
+                    tagsContainer.innerHTML = `<span class="tag">${escapeHtml(prefillRole)}</span>`;
+                }
+            }
+        }
+
+        function openWorkPreview(src, fileType) {
+            const url = String(src || '').trim();
+            if (!url) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'work-modal';
+
+            const card = document.createElement('div');
+            card.className = 'work-modal-card';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'work-modal-close';
+            closeBtn.type = 'button';
+            closeBtn.textContent = '\u00d7';
+            card.appendChild(closeBtn);
+
+            if (String(fileType || '').toLowerCase() === 'image') {
+                const img = document.createElement('img');
+                img.className = 'work-modal-media';
+                img.src = url;
+                img.alt = 'Work preview';
+                card.appendChild(img);
+            } else {
+                const frame = document.createElement('iframe');
+                frame.className = 'work-modal-media';
+                frame.src = url;
+                frame.title = 'Work preview';
+                card.appendChild(frame);
+            }
+
+            modal.appendChild(card);
+            document.body.appendChild(modal);
+
+            closeBtn.onclick = () => modal.remove();
+            modal.onclick = event => {
+                if (event.target === modal) modal.remove();
+            };
+        }
+
+        function renderWorkCards(works, containerId, emptyText, options = {}) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const showOpenButton = options.showOpenButton !== false;
+
+            if (!works.length) {
+                container.innerHTML = `<p>${escapeHtml(emptyText)}</p>`;
+                return;
+            }
+
+            container.innerHTML = works.map(work => {
+                const src = normalizeImage(work.fileUrl, 'images/work1.jpeg');
+                const isImage = String(work.fileType || '').toLowerCase() === 'image';
+                return `
+                    <article class="work-item">
+                        ${isImage
+                            ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(work.title || 'Work')}" class="work-image">`
+                            : `<img src="images/work1.jpeg" alt="${escapeHtml(work.title || 'Document')}" class="work-image">`}
+                        <div class="work-info">
+                            <h3>${escapeHtml(work.title || 'Untitled')}</h3>
+                            <p>${escapeHtml(work.description || '')}</p>
+                            ${showOpenButton
+                                ? `<button class="open-work-btn" type="button" data-work-src="${encodeURIComponent(src)}" data-work-type="${escapeHtml(work.fileType || 'document')}">Open Work</button>`
+                                : ''}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            if (!container.dataset.previewBound) {
+                container.addEventListener('click', event => {
+                    const trigger = event.target.closest('button[data-work-src]');
+                    if (!trigger) return;
+                    openWorkPreview(
+                        decodeURIComponent(trigger.dataset.workSrc || ''),
+                        trigger.dataset.workType || 'document'
+                    );
+                });
+                container.dataset.previewBound = 'true';
+            }
+        }
+
+        function renderProfile(profile) {
+            document.getElementById('profileAvatar').src = normalizeImage(profile.profilePicture, 'images/user-1.png');
+            document.getElementById('profileName').textContent = profile.name || profile.username || 'Collaborator';
+
+            const shortBio =
+                normalizeText(profile.bio)
+                || normalizeText(profile.about)
+                || normalizeText(profile.summary)
+                || normalizeText(profile.description)
+                || 'No profile intro added yet.';
+            const aboutText =
+                normalizeText(profile.about)
+                || normalizeText(profile.bio)
+                || normalizeText(profile.summary)
+                || normalizeText(profile.description)
+                || 'This creator has not added an about section yet.';
+
+            document.getElementById('profileBio').textContent = shortBio;
+            document.getElementById('aboutText').textContent = aboutText;
+
+            document.getElementById('collabsCount').textContent = String(profile.stats?.collaborationsCount || 0);
+            document.getElementById('featuredCount').textContent = String(profile.stats?.featuredCount || 0);
+
+            const profileGenres = normalizeGenres(profile.genres || profile.genre || profile.interests);
+            const tags = [];
+            profileGenres.slice(0, 5).forEach(genre => tags.push(genre));
+            if (profile.country) tags.push(profile.country);
+            if (profile.ageGroup) tags.push(profile.ageGroup);
+            if (profile.experience) tags.push(`${profile.experience} yrs`);
+
+            const tagsContainer = document.getElementById('profileTags');
+            tagsContainer.innerHTML = tags.length
+                ? tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')
+                : '<span class="tag">No genres added yet</span>';
+
+            const featured = Array.isArray(profile.featuredWorks) ? profile.featuredWorks : [];
+            const featuredCollaborations = Array.isArray(profile.featuredCollaborations)
+                ? profile.featuredCollaborations.slice(0, 3)
+                : [];
+            const allWorks = Array.isArray(profile.works) ? profile.works : [];
+            const featuredIds = new Set(featured.map(work => String(work._id)));
+            const uploadedOnly = allWorks.filter(work => !featuredIds.has(String(work._id)));
+
+            const featuredStoryCards = featuredCollaborations.map(item => ({
+                _id: item._id,
+                title: item.title || 'Featured Story',
+                description: item.description || '',
+                fileType: 'image',
+                fileUrl: item.fileUrl || 'images/work1.jpeg'
+            }));
+
+            const mergedFeaturedCards = [...featured, ...featuredStoryCards];
+
+            renderWorkCards(mergedFeaturedCards, 'featuredWorksGrid', 'No featured works selected yet.', { showOpenButton: false });
+            renderWorkCards(uploadedOnly.length ? uploadedOnly : allWorks, 'uploadedWorksGrid', 'No uploaded works yet.', { showOpenButton: true });
+        }
+
+        function updateRequestAvailability() {
+            const openBtn = document.getElementById('openRequestModalBtn');
+            if (!openBtn || !currentUser || !viewedProfile) return;
+
+            const supported = ['artist', 'writer'];
+            if (!supported.includes(String(currentUser.role || '').toLowerCase())) {
+                openBtn.disabled = true;
+                setStatus('Only artist/writer accounts can send collaboration requests.');
+                return;
+            }
+
+            if (String(currentUser._id) === String(viewedProfile._id)) {
+                openBtn.disabled = true;
+                setStatus('You cannot send a request to yourself.');
+                return;
+            }
+
+            if (String(currentUser.role || '').toLowerCase() === String(viewedProfile.role || '').toLowerCase()) {
+                openBtn.disabled = true;
+                setStatus('Requests require opposite roles (artist <-> writer).');
+                return;
+            }
+
+            openBtn.disabled = false;
+            setStatus('');
+        }
+
+        async function loadData() {
+            if (!userId) {
+                window.location.href = 'home.html#stories';
+                return;
+            }
+
+            const [meRes, profileRes] = await Promise.all([
+                fetch('/api/users/me', { credentials: 'include' }),
+                fetch(`/api/users/public/${encodeURIComponent(userId)}`, { credentials: 'include' })
+            ]);
+
+            if (!meRes.ok) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!profileRes.ok) {
+                throw new Error(`Could not load collaborator profile (${profileRes.status})`);
+            }
+
+            currentUser = await meRes.json();
+            viewedProfile = await profileRes.json();
+
+            renderProfile(viewedProfile);
+            updateRequestAvailability();
+        }
+
+        const requestModal = document.getElementById('requestModal');
+        document.getElementById('openRequestModalBtn').addEventListener('click', () => {
+            requestModal.classList.add('show');
+        });
+
+        document.getElementById('closeRequestModalBtn').addEventListener('click', () => {
+            requestModal.classList.remove('show');
+        });
+
+        requestModal.addEventListener('click', event => {
+            if (event.target === requestModal) {
+                requestModal.classList.remove('show');
+            }
+        });
+
+        document.getElementById('requestForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            if (!viewedProfile || !currentUser) return;
+
+            const storyTitle = document.getElementById('storyTitle').value.trim();
+            const chapterNumber = Number(document.getElementById('chapterNumber').value) || 1;
+            const synopsis = document.getElementById('synopsis').value.trim();
+            const payload = {
+                partnerId: viewedProfile._id,
+                title: `${storyTitle} - Chapter ${chapterNumber}`,
+                genre: document.getElementById('genre').value,
+                category: document.getElementById('category').value,
+                description: synopsis,
+                storyTitle,
+                chapterNumber,
+                chapterTitle: `Chapter ${chapterNumber}`,
+                storySynopsis: synopsis
+            };
+
+            try {
+                const response = await fetch('/api/collab', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    setStatus(data.message || 'Failed to send request.');
+                    return;
+                }
+
+                setStatus('Request sent. They can approve from dashboard.');
+                event.target.reset();
+                document.getElementById('chapterNumber').value = '1';
+                requestModal.classList.remove('show');
+            } catch (_error) {
+                setStatus('Request failed due to network/server issue.');
+            }
+        });
+
+        loadData().catch(error => {
+            console.error(error);
+            const hasPrefillIdentity = Boolean(prefillName || prefillAvatar);
+            if (!hasPrefillIdentity) {
+                document.getElementById('profileName').textContent = 'Unable to load profile';
+                document.getElementById('profileBio').textContent = 'Could not fully load profile details right now.';
+                setStatus('Profile data fetch failed. Please retry from dashboard/home.');
+                return;
+            }
+
+            setStatus('');
+        });
+
+        prefillHeaderFromQuery();
+    </script>
+</body>
+</html>

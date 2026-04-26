@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reader Dashboard - PixelScript</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(180deg, #fffdfa 0%, #f6efe7 100%);
+            color: #2a241d;
+        }
+
+        .shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 56px;
+        }
+
+        .hero, .panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border: 1px solid #eadfd1;
+            border-radius: 24px;
+            box-shadow: 0 18px 40px rgba(76, 49, 18, 0.08);
+        }
+
+        .hero {
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 42px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: #65594e;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: #7c4c22;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #f8efe4;
+            color: #473726;
+        }
+
+        .panel {
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="hero">
+            <h1>Reader Space</h1>
+            <p>Browse published stories, read the first two chapters for free, and unlock the rest as you go. This dashboard keeps the reading experience separate from the writer and artist tools.</p>
+            <div class="actions">
+                <a class="btn btn-primary" href="stories.html"><i class="fas fa-book-open"></i> Browse Stories</a>
+                <a class="btn btn-secondary" href="profile.html"><i class="fas fa-user"></i> Open Profile</a>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>How Reader Access Works</h2>
+            <p>Every published story now exposes chapter 1 and chapter 2 for free. Later chapters stay visible in the reader interface but remain locked until purchased, so the reading flow is clearer and closer to a real paywall model.</p>
+        </section>
+    </main>
+
+    <script src="js/role-router.js"></script>
+    <script>
+        async function initReaderDashboard() {
+            try {
+                const user = await fetchCurrentUserForRouting();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (user.role !== 'consumer') {
+                    window.location.href = getDashboardPathForRole(user.role);
+                }
+            } catch (error) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        initReaderDashboard();
+    </script>
+</body>
+</html>
