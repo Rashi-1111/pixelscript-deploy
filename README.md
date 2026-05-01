@@ -3,7 +3,7 @@
 A collaborative platform for artists and writers to work together on creative projects in real-time. Create stories, share artwork, and build amazing creative works together!
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-AGPLv3-green)
 ![Node Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
 
 ## 🎨 Features
@@ -288,9 +288,34 @@ Please ensure:
 - [ ] Optimize socket.io connections
 - [ ] Add TypeScript support
 
-## 📄 License
+## 📜 License & Usage
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+PixelScript is open-source under the GNU Affero General Public License v3.0 (AGPLv3).
+
+This means:
+
+* You are free to use, modify, and distribute the code
+* If you modify or deploy it (including as a web app), you must also open-source your changes under the same license
+
+### ⚠️ Project Integrity & Concept Notice
+
+PixelScript is an original real-time collaborative storytelling platform built with a unique dual-role system (Artist Studio & Writer Studio).
+
+While the code is open-source:
+
+* The **product concept, design philosophy, and feature architecture** remain the intellectual property of the author
+* Direct replication of PixelScript as a competing product without meaningful innovation is discouraged
+
+### 🚫 Branding Restriction
+
+The name **"PixelScript"**, its identity, and branding elements:
+
+* May not be used for derivative or deployed versions without explicit permission
+* Forks must use a different name and branding
+
+### 🤝 Contributions
+
+Contributions are welcome, but by contributing you agree that your contributions will be licensed under AGPLv3.
 
 ## 👥 Authors
 
